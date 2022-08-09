@@ -111,6 +111,23 @@ No stopped containers
 root@corelight:/opt/docker/compose/corelightathome-docker#
 ```
 
+# Configure
+
+You should be able to do everything you need simply by using docker environment variables.
+
+Copy the .env example file and edit, e.g.
+
+```
+root@corelight:/opt/docker/compose/corelightathome-docker# cp dot-env-example .env
+root@corelight:/opt/docker/compose/corelightathome-docker# vim .env
+root@corelight:/opt/docker/compose/corelightathome-docker# cat .env
+CORELIGHT_LICENSE="CHANGE_ME"
+IDAPTIVE_USERNAME="CHANGE_ME"
+IDAPTIVE_PASSWORD="CHANGE_ME"
+MAXMIND_LICENSE_KEY="CHANGE_ME"
+root@corelight:/opt/docker/compose/corelightathome-docker#
+```
+
 # Run
 
 ```
