@@ -10,12 +10,35 @@ WARNING: Still has bugs/issues, results may vary, please provide feedback and cr
 
 # NOTE
 
-Make sure eth0 offloading features are disabled outside of the container, as even with host based networking it doesn't appear to be able to do it?
+Install the latest Raspberry Pi OS 64-bit on your Pi. That's the whole point of this container at this point. The Corelight@Home docs and script assume you've installed an older 32-bit version, and it installs a 64-bit kernel, and some 64-bit packages, but still assumes the rest of the O/S is the default Raspberry Pi 32-bit version.
 
-e.g. something like this in /etc/rc.local,
+Installing the latest docker community edition is what you want, and it's trivial,
 
 ```
-root@corelight:/opt/docker/compose/corelight# cat /etc/rc.local
+apt-get remove docker docker-engine docker.io containerd runc
+apt-get update
+
+apt-get install \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release
+
+mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+apt-get update
+apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+systemctl enable docker.service
+docker ps
+```
+
+Make sure eth0 offloading features are disabled outside of the container, as even with host based networking it doesn't appear to be able to do it?
+
+e.g. something like this in /etc/rc.local to configure eth0 appropriately.
+
+```
+root@corelight:/opt/docker/compose/corelightathome-docker# cat /etc/rc.local
 #!/bin/sh -e
 #
 # rc.local
@@ -42,13 +65,26 @@ ethtool -K eth0 generic-segmentation-offload off
 ethtool -K eth0 generic-receive-offload off
 
 exit 0
-root@corelight:/opt/docker/compose/corelight#
+root@corelight:/opt/docker/compose/corelightathome-docker#
 ```
 
-# Build
+# Get repo & Build
 
 ```
-root@corelight:/opt/docker/compose/corelight# sh build.sh
+root@corelight:~# mkdir -p /opt/docker/compose
+root@corelight:~# cd /opt/docker/compose/
+root@corelight:/opt/docker/compose# git clone https://github.com/colin-stubbs/corelightathome-docker.git
+Cloning into 'corelightathome-docker'...
+remote: Enumerating objects: 18, done.
+remote: Counting objects: 100% (18/18), done.
+remote: Compressing objects: 100% (16/16), done.
+remote: Total 18 (delta 1), reused 15 (delta 1), pack-reused 0
+Receiving objects: 100% (18/18), 2.70 MiB | 5.30 MiB/s, done.
+Resolving deltas: 100% (1/1), done.
+root@corelight:/opt/docker/compose# cd corelightathome-docker/
+root@corelight:/opt/docker/compose/corelightathome-docker#
+
+root@corelight:/opt/docker/compose/corelightathome-docker# sh build.sh
 No stopped containers
 [+] Building 166.4s (9/9) FINISHED
  => [internal] load build definition from Dockerfile                                                                                                                                                                                               0.0s
@@ -72,19 +108,19 @@ No stopped containers
  => => exporting layers                                                                                                                                                                                                                           20.8s
  => => writing image sha256:403963509724f81efcd071e3cc4ebdc4d42d1fd05f788da4818c771a6a799ae9                                                                                                                                                       0.0s
  => => naming to docker.io/colin-stubbs/corelight:latest                                                                                                                                                                                           0.0s
-root@corelight:/opt/docker/compose/corelight#
+root@corelight:/opt/docker/compose/corelightathome-docker#
 ```
 
 # Run
 
 ```
-root@corelight:/opt/docker/compose/corelight# sh up.sh --detach
+root@corelight:/opt/docker/compose/corelightathome-docker# sh up.sh --detach
 [+] Running 1/1
  ⠿ Container corelight-corelight-1  Started                                                                                                                                                                                                        0.2s
-root@corelight:/opt/docker/compose/corelight# docker ps
+root@corelight:/opt/docker/compose/corelightathome-docker# docker ps
 CONTAINER ID   IMAGE                           COMMAND                  CREATED         STATUS         PORTS     NAMES
 58977f243939   colin-stubbs/corelight:latest   "/bin/sh -c /usr/loc…"   3 minutes ago   Up 4 seconds             corelight-corelight-1
-root@corelight:/opt/docker/compose/corelight# docker logs -t 58977f243939
+root@corelight:/opt/docker/compose/corelightathome-docker# docker logs -t 58977f243939
 2022-08-09T22:33:56.739582622Z supervisor: Licensed to corelighthome until 2023-06-13 00:00:00 UTC
 2022-08-09T22:33:56.759544810Z Starting Corelight Software Sensor...
 2022-08-09T22:33:56.856090495Z     Failed to disable offloading
@@ -139,20 +175,20 @@ root@corelight:/opt/docker/compose/corelight# docker logs -t 58977f243939
 2022-08-09T22:37:38.892663952Z supervisor: Running 4 Zeek workers.
 2022-08-09T22:37:42.786317901Z suricata: 1 rule files processed. 27271 rules successfully loaded, 131 rules failed
 2022-08-09T22:37:44.405313689Z suricata: Threshold config parsed: 0 rule(s) found
-root@corelight:/opt/docker/compose/corelight#
-root@corelight:/opt/docker/compose/corelight# cat data/logs/2022-08-09/capture_loss_20220809_22\:35\:12-22\:35\:14+0000.log
+root@corelight:/opt/docker/compose/corelightathome-docker#
+root@corelight:/opt/docker/compose/corelightathome-docker# cat data/logs/2022-08-09/capture_loss_20220809_22\:35\:12-22\:35\:14+0000.log
 {"_path":"capture_loss","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:35:12.634291Z","_node":"worker-03","ts":"2022-08-09T22:35:12.634291Z","ts_delta":60.00007891654968,"peer":"worker-03","gaps":0,"acks":0,"percent_lost":0.0}
 {"_path":"capture_loss","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:35:13.562008Z","_node":"worker-02","ts":"2022-08-09T22:35:13.562008Z","ts_delta":60.00023794174194,"peer":"worker-02","gaps":0,"acks":0,"percent_lost":0.0}
 {"_path":"capture_loss","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:35:13.578905Z","_node":"worker-04","ts":"2022-08-09T22:35:13.578905Z","ts_delta":60.00014519691467,"peer":"worker-04","gaps":0,"acks":0,"percent_lost":0.0}
 {"_path":"capture_loss","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:35:13.799100Z","_node":"worker-01","ts":"2022-08-09T22:35:13.799100Z","ts_delta":60.000165939331058,"peer":"worker-01","gaps":0,"acks":0,"percent_lost":0.0}
-root@corelight:/opt/docker/compose/corelight#
-root@corelight:/opt/docker/compose/corelight# cat data/logs/2022-08-09/cluster_20220809_22\:35\:11-22\:35\:13+0000.log
+root@corelight:/opt/docker/compose/corelightathome-docker#
+root@corelight:/opt/docker/compose/corelightathome-docker# cat data/logs/2022-08-09/cluster_20220809_22\:35\:11-22\:35\:13+0000.log
 {"_path":"cluster","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:35:11.141325Z","_node":"manager","ts":"2022-08-09T22:35:11.141325Z","node":"manager","message":"got hello from logger (2D28DB73859BF318F64B5CA57D4C1F591DE35AF6#37)"}
 {"_path":"cluster","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:35:12.637562Z","_node":"logger","ts":"2022-08-09T22:35:12.637562Z","node":"logger","message":"got hello from worker-03 (B7F80D04559960FC83ADB8D73DBC11FC7EF509AA#60)"}
 {"_path":"cluster","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:35:12.631029Z","_node":"worker-03","ts":"2022-08-09T22:35:12.631029Z","node":"worker-03","message":"got hello from logger (2D28DB73859BF318F64B5CA57D4C1F591DE35AF6#37)"}
 {"_path":"cluster","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:35:12.086711Z","_node":"proxy-1","ts":"2022-08-09T22:35:12.086711Z","node":"proxy-1","message":"got hello from logger (2D28DB73859BF318F64B5CA57D4C1F591DE35AF6#37)"}
-root@corelight:/opt/docker/compose/corelight#
-root@corelight:/opt/docker/compose/corelight# cat data/logs/2022-08-09/broker_20220809_22\:34\:14-22\:35\:13+0000.log
+root@corelight:/opt/docker/compose/corelightathome-docker#
+root@corelight:/opt/docker/compose/corelightathome-docker# cat data/logs/2022-08-09/broker_20220809_22\:34\:14-22\:35\:13+0000.log
 {"_path":"broker","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:34:14.715893Z","_node":"worker-02","ts":"2022-08-09T22:34:14.715893Z","ty":"Broker::STATUS","ev":"peer-added","peer.address":"127.0.0.1","peer.bound_port":30000,"message":"handshake successful"}
 {"_path":"broker","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:34:14.709537Z","_node":"worker-04","ts":"2022-08-09T22:34:14.709537Z","ty":"Broker::STATUS","ev":"peer-added","peer.address":"127.0.0.1","peer.bound_port":30000,"message":"handshake successful"}
 {"_path":"broker","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:34:14.891797Z","_node":"worker-01","ts":"2022-08-09T22:34:14.891797Z","ty":"Broker::STATUS","ev":"peer-added","peer.address":"127.0.0.1","peer.bound_port":30000,"message":"handshake successful"}
@@ -160,5 +196,5 @@ root@corelight:/opt/docker/compose/corelight# cat data/logs/2022-08-09/broker_20
 {"_path":"broker","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:35:12.628538Z","_node":"logger","ts":"2022-08-09T22:35:12.628538Z","ty":"Broker::STATUS","ev":"peer-added","peer.address":"::ffff:127.0.0.1","peer.bound_port":32920,"message":"handshake successful"}
 {"_path":"broker","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:35:12.628589Z","_node":"worker-03","ts":"2022-08-09T22:35:12.628589Z","ty":"Broker::STATUS","ev":"peer-added","peer.address":"127.0.0.1","peer.bound_port":27762,"message":"handshake successful"}
 {"_path":"broker","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:35:12.084606Z","_node":"proxy-1","ts":"2022-08-09T22:35:12.084606Z","ty":"Broker::STATUS","ev":"peer-added","peer.address":"127.0.0.1","peer.bound_port":27762,"message":"handshake successful"}
-root@corelight:/opt/docker/compose/corelight#
+root@corelight:/opt/docker/compose/corelightathome-docker#
 ```
