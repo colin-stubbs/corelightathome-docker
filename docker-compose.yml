@@ -1,0 +1,23 @@
+version: '3.7'
+
+services:
+  corelight:
+    build:
+      context: container/
+      args:
+        CORELIGHT_LICENSE: ${CORELIGHT_LICENSE}
+        IDAPTIVE_USERNAME: ${IDAPTIVE_USERNAME}
+        IDAPTIVE_PASSWORD: ${IDAPTIVE_PASSWORD}
+        MAXMIND_LICENSE_KEY: ${MAXMIND_LICENSE_KEY}
+    image: colin-stubbs/corelight:latest
+    network_mode: host
+    volumes:
+      - ./container/corelight-softsensor.conf:/etc/corelight-softsensor.conf
+      - ./container/local.zeek:/etc/corelight/local.zeek
+      - ./container/zeek.intel:/etc/corelight/intel/zeek.intel
+      - ./data:/var/corelight
+    environment:
+      CORELIGHT_LICENSE: ${CORELIGHT_LICENSE}
+      IDAPTIVE_USERNAME: ${IDAPTIVE_USERNAME}
+      IDAPTIVE_PASSWORD: ${IDAPTIVE_PASSWORD}
+      MAXMIND_LICENSE_KEY: ${MAXMIND_LICENSE_KEY}
