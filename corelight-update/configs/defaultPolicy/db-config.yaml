@@ -1,0 +1,237 @@
+name: defaultPolicy
+intel_management:
+    intel_file_cleanup: true
+    max_intel_file_age: 24
+    disable_filename: disable.intel
+input_management:
+    default_input: true
+crowdstrike_config:
+    id: ""
+    secret: ""
+    member_cid: ""
+    cloud: us-1
+    host_override: ""
+    base_path_override: ""
+    debug: false
+crowdstrike_indicators:
+    enabled: false
+    interval_hours: 1
+    request_limit: 50000
+    enable_do_notice: true
+    malicious_confidence: high
+    last_updated_days: 30
+    hash_last_updated_days: 3
+    indicator_type_ip_address: true
+    indicator_type_ip_address_block: true
+    indicator_type_url: true
+    indicator_type_https_url: false
+    indicator_type_email_address: true
+    indicator_type_domain: true
+    indicator_type_x509_subject: true
+    indicator_type_username: true
+    indicator_type_hash_md5: true
+    indicator_type_hash_sha256: true
+    indicator_type_file_name: true
+    targets: ""
+    threat_types: ""
+crowdstrike_suricata:
+    enabled: false
+    interval_hours: 1
+crowdstrike_spotlight_cve:
+    enabled: false
+    interval_hours: 0
+    filename: cve_data.csv
+    request_limit: 5000
+    status: open,reopen,expired
+    severity: ""
+crowdstrike_spotlight_hosts:
+    enabled: false
+    interval_hours: 0
+    entity_type: managed
+    filename: hosts_data.tsv
+icann_tld:
+    enabled: true
+    interval_hours: 24
+    url: https://publicsuffix.org/list/effective_tld_names.dat
+suricata:
+    suricata_file_cleanup: true
+    max_suricata_file_age: 48
+    corelight_recommended_disable: true
+    corelight_recommended_enable: true
+    corelight_recommended_modify: true
+    write_disabled_rules: false
+    ip_extraction: true
+    ip_do_notice: true
+    ja3_extraction: true
+    ja3_do_notice: true
+    test_ruleset: true
+    fail_on_ruleset_error: false
+    remote_conf_files: []
+tenable_sc:
+    enabled: false
+    interval_hours: 24
+    filename: cve_data.tsv
+    access_key: ""
+    secret_key: ""
+    severity: 4,3,2,1
+    plugin_type: Active,Passive,Event
+    address: ""
+    port: 443
+    request_limit: 50000
+    test_limit: 0
+fireeye:
+    enabled: false
+    interval_hours: 0
+    url: api.isightpartners.com
+    public_key: ""
+    private_key: ""
+    download_history: 90
+    max_history: 90
+    use_history: 90
+    accept_version: "2.6"
+    debug: false
+    indicator_type_sender_address: true
+    do_notice_sender_address: true
+    indicator_type_source_domain: true
+    do_notice_source_domain: true
+    indicator_type_source_ip: true
+    do_notice_source_ip: true
+    indicator_type_filename: true
+    do_notice_filename: true
+    indicator_type_md5: true
+    do_notice_md5: true
+    indicator_type_sha1: false
+    do_notice_sha1: true
+    indicator_type_sha256: false
+    do_notice_sha256: false
+    indicator_type_fuzzy_hash: false
+    donoticefuzzyhash: true
+    indicator_type_user_agent: true
+    do_notice_user_agent: true
+    indicator_type_cidr: true
+    do_notice_cidr: true
+    indicator_type_domain: true
+    do_notice_domain: true
+    indicator_type_ip: true
+    do_notice_ip: true
+    indicator_type_url: true
+    do_notice_url: true
+alienvault_otx:
+    enabled: false
+    interval_hours: 0
+    url: https://otx.alienvault.com
+    api_key: ""
+    debug: false
+    request_limit: 10000
+    download_history: 90
+    max_history: 365
+    use_history: 90
+    indicator_type_url: true
+    do_notice_url: false
+    indicator_type_hostname: true
+    do_notice_hostname: false
+    indicator_type_domain: true
+    do_notice_domain: false
+    indicator_type_ipv4: true
+    do_notice_ipv4: false
+    indicator_type_md5: true
+    do_notice_md5: false
+    indicator_type_sha1: false
+    do_notice_sha1: false
+    indicator_type_sha256: false
+    do_notice_sha256: false
+    indicator_type_imphash: false
+    do_notice_imphash: false
+    indicator_type_sslcert: true
+    do_notice_sslcert: false
+    indicator_type_email: false
+    do_notice_email: false
+mandiant_threat_intel:
+    enabled: false
+    interval_hours: 0
+    url: https://api.intelligence.mandiant.com
+    key_id: ""
+    key_secret: ""
+    download_history: 89
+    max_history: 365
+    use_history: 30
+    debug: false
+    min_confidence_score_use: 80
+    min_confidence_score_download: 60
+    min_confidence_score_doNotice: 100
+    exclude_os_indicators: true
+    request_limit: 1000
+    indicator_type_url: true
+    do_notice_url: false
+    indicator_type_fqdn: true
+    do_notice_fqdn: false
+    indicator_type_ipv4: true
+    do_notice_ipv4: false
+    indicator_type_md5: true
+    do_notice_md5: false
+    indicator_type_sha1: false
+    do_notice_sha1: false
+    indicator_type_sha256: false
+    do_notice_sha256: false
+package_management:
+    enabled: false
+    offline_mode: false
+    manifest_file: bundle.manifest
+    bundle_name: corelight.bundle
+    signed: false
+sources:
+    - name: Corelight
+      url: https://feed.corelight.com/corelight.rules
+      source_type: suricata
+      global_cache: true
+      auth_type: ""
+      auth_token: ""
+      auth_token_header: Authorization
+      username: ""
+      encrypted_pass: ""
+      ignore_tls: false
+    - name: ET/Open
+      url: https://rules.emergingthreats.net/open/suricata-6.0/emerging.rules.tar.gz
+      source_type: suricata
+      global_cache: false
+      auth_type: ""
+      auth_token: ""
+      auth_token_header: Authorization
+      username: ""
+      encrypted_pass: ""
+      ignore_tls: false
+    - name: SSLBL
+      url: https://sslbl.abuse.ch/blacklist/sslblacklist.rules
+      source_type: suricata
+      global_cache: false
+      auth_type: ""
+      auth_token: ""
+      auth_token_header: Authorization
+      username: ""
+      encrypted_pass: ""
+      ignore_tls: false
+push_content:
+    intel: true
+    suricata: true
+    suricata_configs: true
+    input: true
+    package_bundle: true
+fleet:
+    ip: ""
+    username: ""
+    password: ""
+    encrypted_pass: ""
+    ignore_tls: false
+    sensor_policy: ""
+    suricata_policy: ""
+sensors:
+  - name:            docker
+    type:            localhost
+    suricata:        true  # push suricata rulesets to this sensor
+    intel:           true  # push intel files to this sensor
+    input:           true  # push input files to this sensor
+    bundle:          true  # push package bundle to this sensor
+    intel_path:      "/etc/corelight/intel/intel.dat"      # software sensors and localhost ONLY
+    input_path:      "/etc/corelight/input_files/"         # software sensors and localhost ONLY
+    suricata_path:   "/etc/corelight/rules/suricata.rules" # software sensors and localhost ONLY
+    bundle_path:     "/etc/corelight/corelight.bundle"     # software sensors ONLY

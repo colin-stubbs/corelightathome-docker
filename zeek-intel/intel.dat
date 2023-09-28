@@ -1,0 +1,3 @@
+#fields	indicator	indicator_type	meta.source	meta.desc	meta.url	meta.do_notice
+example-intel-hit.corelight.com	Intel::DOMAIN	corelight_example	Dummy indicator for testing	https://corelight.com	T
+192.0.2.0	Intel::ADDR	TEST-NET-1	Test network address for testing	https://datatracker.ietf.org/doc/html/rfc5735	T

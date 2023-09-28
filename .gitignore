@@ -1,0 +1,4 @@
+.env
+data/
+suricata-update/update/
+zeek-intel/Zeek-Intelligence-Feeds/

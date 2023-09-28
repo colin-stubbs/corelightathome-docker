@@ -1,0 +1,37 @@
+version: '3.7'
+
+services:
+  corelight:
+    build:
+      context: container/
+      args:
+        MAXMIND_LICENSE_KEY: ${MAXMIND_LICENSE_KEY:-}
+
+    image: corelight:latest
+    network_mode: host
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
+      - SYS_NICE
+    privileged: true
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./container/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint
+      - ./corelight-softsensor.conf:/etc/corelight-softsensor.conf
+      - ./corelight-update/configs:/etc/corelight-update/configs
+      - ./local.zeek:/etc/corelight/local.zeek
+      - ./zeek-intel:/etc/corelight/intel
+      - ./suricata-update:/etc/corelight/suricata-update
+      - ./suricata-rules:/etc/corelight/suricata-rules
+      - ./input_files:/etc/corelight/input_files
+      - ./packages:/etc/corelight/packages
+      - ./data:/var/corelight
+    tmpfs:
+      - /run/suricata
+    environment:
+      CORELIGHT_LICENSE: ${CORELIGHT_LICENSE:-FIX_ME}
+      MAXMIND_ACCOUNT_ID: ${MAXMIND_ACCOUNT_ID:-}
+      MAXMIND_LICENSE_KEY: ${MAXMIND_LICENSE_KEY:-}
