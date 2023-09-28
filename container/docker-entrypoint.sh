@@ -11,16 +11,8 @@ if [ "${CORELIGHT_LICENSE}x" != "x" ] ; then
   echo -n "${CORELIGHT_LICENSE}" > /etc/corelight-license.txt
 fi
 
-# disable corelight-update web server
-corelight-update update -global-setting "webserver.enable=false"
-
-if [ "${MAXMIND_LICENSE_KEY}z" != "z" ] ; then
-  # configure global corelight-update options for GeoIP updates based on env variables...
-  corelight-update update -global-setting "geoip.interval_hours=1"
-  corelight-update update -global-setting "geoip.account_id=${MAXMIND_ACCOUNT_ID}"
-  corelight-update update -global-setting "geoip.license_key=${MAXMIND_LICENSE_KEY}"
-  corelight-update update -global-setting "geoip.enable=true"
-fi
+# configure corelight-update global settings from bind mounted file, edit as needed outside of the container
+corelight-update update -global -path /etc/corelight-update/global.yaml
 
 # run corelight-update once before starting to ensure all necessary files will exist and content is updated/available
 corelight-update -o
