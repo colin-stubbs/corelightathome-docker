@@ -193,7 +193,7 @@ sources:
     - name: ET/Open
       url: https://rules.emergingthreats.net/open/suricata-6.0/emerging.rules.tar.gz
       source_type: suricata
-      global_cache: false
+      global_cache: true
       auth_type: ""
       auth_token: ""
       auth_token_header: Authorization
@@ -203,7 +203,7 @@ sources:
     - name: SSLBL
       url: https://sslbl.abuse.ch/blacklist/sslblacklist.rules
       source_type: suricata
-      global_cache: false
+      global_cache: true
       auth_type: ""
       auth_token: ""
       auth_token_header: Authorization

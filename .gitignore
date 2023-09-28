@@ -1,7 +1,6 @@
 .DS_Store
 .env
 data/
-suricata-update/update/
 zeek-intel/*
 input_files/
 packages/

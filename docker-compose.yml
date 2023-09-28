@@ -34,7 +34,7 @@ services:
       - ./zeek-intel:/etc/corelight/intel
       - ./GeoIP.conf:/etc/corelight-update/global/GeoIP.conf
       - ./geoip:/usr/share/GeoIP
-      - ./suricata-rules:/etc/corelight/suricata-rules
+      - ./suricata-rules:/etc/corelight/rules
       - ./input_files:/etc/corelight/input_files
       - ./data:/var/corelight
     tmpfs:
