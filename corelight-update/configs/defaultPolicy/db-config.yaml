@@ -225,13 +225,22 @@ fleet:
     sensor_policy: ""
     suricata_policy: ""
 sensors:
-  - name:            docker
-    type:            localhost
-    suricata:        true  # push suricata rulesets to this sensor
-    intel:           true  # push intel files to this sensor
-    input:           true  # push input files to this sensor
-    bundle:          true  # push package bundle to this sensor
-    intel_path:      "/etc/corelight/intel/intel.dat"      # software sensors and localhost ONLY
-    input_path:      "/etc/corelight/input_files/"         # software sensors and localhost ONLY
-    suricata_path:   "/etc/corelight/rules/suricata.rules" # software sensors and localhost ONLY
-    bundle_path:     "/etc/corelight/corelight.bundle"     # software sensors ONLY
+    - name: docker
+      type: localhost
+      ip: ""
+      username: ""
+      password: ""
+      encrypted_pass: ""
+      fleet: false
+      suricata: true
+      suricata_configs: true
+      intel: true
+      input: true
+      bundle: true
+      uid: ""
+      ignore_tls: true
+      intel_path: /etc/corelight/intel/intel.dat
+      input_path: /etc/corelight/input_files/
+      suricata_path: /etc/corelight/rules/suricata.rules
+      suricata_config_path: /var/corelight/suricata
+      bundle_path: /etc/corelight/corelight.bundle
