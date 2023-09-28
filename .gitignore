@@ -11,3 +11,4 @@ corelight-update/files/
 corelight-update/working/
 corelight-update/global.yaml
 local.zeek
+corelight-softsensor.conf
