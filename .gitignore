@@ -1,4 +1,7 @@
 .env
 data/
 suricata-update/update/
+zeek-intel/intel.dat
 zeek-intel/Zeek-Intelligence-Feeds/
+input_files/
+packages/
