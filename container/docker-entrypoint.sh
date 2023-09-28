@@ -15,10 +15,10 @@ fi
 corelight-update update -global-setting "webserver.enable=false"
 
 # configure global corelight-update options for GeoIP updates based on env variables...
-test -n "${MAXMIND_ACCOUNT_ID}" && corelight-update update -global-setting "geoip.account_id=${MAXMIND_ACCOUNT_ID}"
-test -n "${MAXMIND_LICENSE_KEY}" && corelight-update update -global-setting "geoip.license_key=${MAXMIND_LICENSE_KEY}"
-test -n "${MAXMIND_ACCOUNT_ID}" && test -n "${MAXMIND_LICENSE_KEY}" && corelight-update update -global-setting "geoip.enable=true"
-test -n "${MAXMIND_ACCOUNT_ID}" && test -n "${MAXMIND_LICENSE_KEY}" && corelight-update update -global-setting "geoip.interval_hours=1"
+corelight-update update -global-setting "geoip.interval_hours=1"
+corelight-update update -global-setting "geoip.account_id=${MAXMIND_ACCOUNT_ID}"
+corelight-update update -global-setting "geoip.license_key=${MAXMIND_LICENSE_KEY}"
+test -n "${MAXMIND_LICENSE_KEY}" && corelight-update update -global-setting "geoip.enable=true"
 
 # run corelight-update once before starting to ensure all necessary files will exist and content is updated/available
 corelight-update -o
