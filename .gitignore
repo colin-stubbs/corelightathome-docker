@@ -9,3 +9,5 @@ corelight-update/configs/defaultPolicy/local-input
 corelight-update/configs/defaultPolicy/db-config.yaml
 corelight-update/files/
 corelight-update/working/
+corelight-update/global.yaml
+local.zeek
