@@ -13,7 +13,7 @@ geoip:
     interval_hours: 0
     account_id: 0
     license_key: ""
-    database_directory: /var/corelight-update/files/all/geoip
+    database_directory: /usr/share/GeoIP
 remote_global_conf_files: []
 parallel_push_limit: 10
 auto_update_policies:

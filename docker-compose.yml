@@ -32,6 +32,7 @@ services:
       - ./corelight-update/global/global-suricata:/etc/corelight-update/global/global-suricata
       - ./local.zeek:/etc/corelight/local.zeek
       - ./zeek-intel:/etc/corelight/intel
+      - ./GeoIP.conf:/etc/corelight-update/global/GeoIP.conf
       - ./suricata-rules:/etc/corelight/suricata-rules
       - ./input_files:/etc/corelight/input_files
       - ./data:/var/corelight
