@@ -2,6 +2,7 @@
 .env
 data/
 zeek-intel/*
+suricata-rules/
 input_files/
 packages/
 corelight-update/configs/defaultPolicy/local-input
