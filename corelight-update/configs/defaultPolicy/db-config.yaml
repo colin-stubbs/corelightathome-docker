@@ -16,7 +16,7 @@ crowdstrike_config:
 crowdstrike_indicators:
     enabled: false
     interval_hours: 1
-    request_limit: 50000
+    request_limit: 10000
     enable_do_notice: true
     malicious_confidence: high
     last_updated_days: 30
