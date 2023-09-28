@@ -1,14 +1,27 @@
 # corelightathome-docker
 
-Corelight@Home (Raspberry Pi) in a docker container
+Corelight@Home in a docker container on a Raspberry Pi
 
 Refer to: https://corelight.com/blog/corelight-at-home
 
-Running Corelight@Home this way basically makes https://github.com/corelight/raspi-corelight unnecessary, though the script in that repo is what the container build process has been based on.
+Running Corelight@Home this way basically makes https://github.com/corelight/raspi-corelight unnecessary, which is great because it's garbage.
 
-WARNING: Still has bugs/issues, results may vary, please provide feedback and create an issue if you find anything. If you fix it please fork repo and issue a pull request.
+Though the script in that repo is what the container build process has been based on.
 
-# NOTE
+NOTE: This container now uses the `corelight-update` package to manage updates to the following,
+1. GeoIP database content, assuming that you have a Maxmind GeoIP license to use, refer to https://www.maxmind.com/en/geolite2/signup
+2. Suricata rules,
+  a. From whatever sources you configure in ./corelight-update/configs/defaultPolicy/db-config.yaml, e.g. CrowdStrike Intelligence (if you have an appropriate subscription!)
+  b. From custom content under ./corelight-update/configs/defaultPolicy/local-suricata
+3. Zeek Threat Intelligence indicators,
+  a. From whatever sources you configure in ./corelight-update/configs/defaultPolicy/db-config.yaml, e.g. CrowdStrike Intelligence (if you have an appropriate subscription!)
+  b. From custom content under ./corelight-update/configs/defaultPolicy/local-intel
+4. Corelight/Zeek packages,
+  a. NOTE: I have not tested this capability as yet so results may vary.
+
+# Setup
+
+## Get Docker
 
 Install the latest Raspberry Pi OS 64-bit on your Pi. That's the whole point of this container at this point. The Corelight@Home docs and script assume you've installed an older 32-bit version, and it installs a 64-bit kernel, and some 64-bit packages, but still assumes the rest of the O/S is the default Raspberry Pi 32-bit version.
 
@@ -68,7 +81,9 @@ exit 0
 root@corelight:/opt/docker/compose/corelightathome-docker#
 ```
 
-# Get repo & Build
+## Get repo & Build
+
+The `build.sh` helper script exists to show you how to build and rebuild reliably.
 
 ```
 root@corelight:~# mkdir -p /opt/docker/compose
@@ -84,141 +99,660 @@ Resolving deltas: 100% (1/1), done.
 root@corelight:/opt/docker/compose# cd corelightathome-docker/
 root@corelight:/opt/docker/compose/corelightathome-docker#
 
-root@corelight:/opt/docker/compose/corelightathome-docker# sh build.sh
+root@corelight:/opt/docker/compose/corelightathome-docker# cat build.sh 
+#!/bin/bash
+
+# remove any existing container if something has changed
+docker compose -f ./docker-compose.yml rm
+
+# build the container
+# fix perms on custom entrypoint as these may have been lost...
+chmod 0755 container/docker-entrypoint.sh
+
+# build a new container if necessary
+# NOTE: cached layers may be used if there's no modifications in container/Dockerfile and related files
+docker compose -f ./docker-compose.yml build
+
+# EOF
+
+root@corelight:/opt/docker/compose/corelightathome-docker# sh build.sh 
 No stopped containers
-[+] Building 166.4s (9/9) FINISHED
- => [internal] load build definition from Dockerfile                                                                                                                                                                                               0.0s
- => => transferring dockerfile: 2.56kB                                                                                                                                                                                                             0.0s
- => [internal] load .dockerignore                                                                                                                                                                                                                  0.0s
- => => transferring context: 2B                                                                                                                                                                                                                    0.0s
- => [internal] load metadata for docker.io/library/debian:bullseye                                                                                                                                                                                 1.9s
- => [1/4] FROM docker.io/library/debian:bullseye@sha256:82bab30ed448b8e2509aabe21f40f0607d905b7fd0dec72802627a20274eba55                                                                                                                          10.8s
- => => resolve docker.io/library/debian:bullseye@sha256:82bab30ed448b8e2509aabe21f40f0607d905b7fd0dec72802627a20274eba55                                                                                                                           0.0s
- => => sha256:82bab30ed448b8e2509aabe21f40f0607d905b7fd0dec72802627a20274eba55 1.85kB / 1.85kB                                                                                                                                                     0.0s
- => => sha256:ede74d90543e4dedd6662653de639d72e82640717f99041591dc9f34c186f0f9 529B / 529B                                                                                                                                                         0.0s
- => => sha256:585393df054ae3733a18ba06108b2cee169be81198dde54e073526e856ff9a01 1.48kB / 1.48kB                                                                                                                                                     0.0s
- => => sha256:114ba63dd73a866ac1bb59fe594dfd218f44ac9b4fa4b2c68499da5584fcfa9d 53.68MB / 53.68MB                                                                                                                                                   4.7s
- => => extracting sha256:114ba63dd73a866ac1bb59fe594dfd218f44ac9b4fa4b2c68499da5584fcfa9d                                                                                                                                                          5.7s
- => [internal] load build context                                                                                                                                                                                                                  0.0s
- => => transferring context: 2.23kB                                                                                                                                                                                                                0.0s
- => [2/4] COPY geoipupdate.sh /usr/bin/geoipupdate                                                                                                                                                                                                 0.8s
- => [3/4] COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint                                                                                                                                                                               0.1s
- => [4/4] RUN echo "### Update GeoIP databases" &&   apt update && apt -y install wget &&   chmod 0755 /usr/bin/geoipupdate &&   /usr/bin/geoipupdate &&   apt -y install git gnupg2 lsb-rele  131.8s
- => exporting to image                                                                                                                                                                                                                            20.8s
- => => exporting layers                                                                                                                                                                                                                           20.8s
- => => writing image sha256:403963509724f81efcd071e3cc4ebdc4d42d1fd05f788da4818c771a6a799ae9                                                                                                                                                       0.0s
- => => naming to docker.io/colin-stubbs/corelight:latest                                                                                                                                                                                           0.0s
-root@corelight:/opt/docker/compose/corelightathome-docker#
+[+] Building 169.8s (10/10) FINISHED                                                                                                                                                                  docker:default
+ => [corelight internal] load build definition from Dockerfile                                                                                                                                                  0.1s
+ => => transferring dockerfile: 1.47kB                                                                                                                                                                          0.0s
+ => [corelight internal] load .dockerignore                                                                                                                                                                     0.0s
+ => => transferring context: 2B                                                                                                                                                                                 0.0s
+ => [corelight internal] load metadata for docker.io/library/debian:bullseye                                                                                                                                    3.2s
+ => [corelight 1/5] FROM docker.io/library/debian:bullseye@sha256:54d33aaad0bc936a9a40d856764c7bc35c0afaa9cab51f88bb95f6cd8004438d                                                                             16.3s
+ => => resolve docker.io/library/debian:bullseye@sha256:54d33aaad0bc936a9a40d856764c7bc35c0afaa9cab51f88bb95f6cd8004438d                                                                                        0.0s
+ => => sha256:54d33aaad0bc936a9a40d856764c7bc35c0afaa9cab51f88bb95f6cd8004438d 1.85kB / 1.85kB                                                                                                                  0.0s
+ => => sha256:eefb45317844a131035d89384dbbe3858a0c22f6b7884e56648bd6b22d206a8a 529B / 529B                                                                                                                      0.0s
+ => => sha256:3a30687df9b732bb88601b6c6c7866d632d5c9d4260cc7ec0fd575abffbbee32 1.48kB / 1.48kB                                                                                                                  0.0s
+ => => sha256:31f5dc1f52c865588c43d8ec718f14d430e149b28f0b28232da825da7ae28f76 53.70MB / 53.70MB                                                                                                                9.6s
+ => => extracting sha256:31f5dc1f52c865588c43d8ec718f14d430e149b28f0b28232da825da7ae28f76                                                                                                                       6.4s
+ => [corelight internal] load build context                                                                                                                                                                     0.0s
+ => => transferring context: 2.11kB                                                                                                                                                                             0.0s
+ => [corelight 2/5] COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint                                                                                                                                  0.6s
+ => [corelight 3/5] COPY zkg-config.cfg /root/zkg-config.cfg                                                                                                                                                    0.1s
+ => [corelight 4/5] COPY profile_d_corelight.sh /etc/profile.d/corelight.sh                                                                                                                                     0.1s
+ => [corelight 5/5] RUN echo "### Updating packages" &&   apt update &&   apt -y install git gnupg2 lsb-release file python3-pip iproute2 procps curl net-tools &&   echo "### Setting up CoreLight apt repo  130.9s
+ => [corelight] exporting to image                                                                                                                                                                             18.6s
+ => => exporting layers                                                                                                                                                                                        18.6s
+ => => writing image sha256:84c7001a184a1204dd00db37b68b0f1d3113a66054acc7c0e91ca8b296d2c86e                                                                                                                    0.0s 
+ => => naming to docker.io/library/corelight:latest                                                                                                                                                             0.0s 
+root@corelight:/opt/docker/compose/corelightathome-docker# 
 ```
 
-# Configure
+## Configure
 
-You should be able to do everything you need simply by using docker environment variables.
+### Environment Variables
 
-Copy the .env example file and edit, e.g.
+This will inject the Corelight license that will be needed for the sensor to actually run.
+
+Copy the .env example file and edit, there's only three variables to configure, e.g.
 
 ```
 root@corelight:/opt/docker/compose/corelightathome-docker# cp dot-env-example .env
 root@corelight:/opt/docker/compose/corelightathome-docker# vim .env
 root@corelight:/opt/docker/compose/corelightathome-docker# cat .env
-CORELIGHT_LICENSE="CHANGE_ME"
-IDAPTIVE_USERNAME="CHANGE_ME"
-IDAPTIVE_PASSWORD="CHANGE_ME"
-MAXMIND_LICENSE_KEY="CHANGE_ME"
+CORELIGHT_LICENSE="LICENSEGOHERE"
 root@corelight:/opt/docker/compose/corelightathome-docker#
 ```
+
+### corelight-update globals
+
+You'll need to edit `./corelight-update/global.yaml` to:
+1. Enable and configure GeoIP database updates from Maxmind
+2. Configure remote global conf files, e.g. Suricata rules from URL's
+3. Other features such as verbosity, update intervals etc
+
+```
+root@corelight:/opt/docker/compose/corelightathome-docker# cat ./corelight-update/global.yaml
+verbose: false
+exp_features: false
+webserver:
+    enable: false
+    tls: true
+    tls_cert: /etc/corelight-update/global/cert.crt
+    tls_key: /etc/corelight-update/global/cert.key
+    port: 8443
+process_feeds: true
+interval_minutes: 60
+geoip:
+    enabled: true
+    interval_hours: 4
+    account_id: 123456
+    license_key: "LICENSEKEYGOHERE"
+    database_directory: /var/corelight-update/files/all/geoip
+remote_global_conf_files: []
+parallel_push_limit: 10
+auto_update_policies:
+    enable: true
+    filename: db-config.yaml
+root@corelight:/opt/docker/compose/corelightathome-docker# 
+```
+
+### corelight-update defaultPolicy
+
+If you want to customise the configuration of corelight-update you'll need to copy the example file as below,
+
+```
+root@corelight:/opt/docker/compose/corelightathome-docker# cp ./corelight-update/configs/defaultPolicy/db-config.yaml.example ./corelight-update/configs/defaultPolicy/db-config.yaml
+root@corelight:/opt/docker/compose/corelightathome-docker# vim ./corelight-update/configs/defaultPolicy/db-config.yaml
+```
+
+For example, you may want to utilise CrowdStrike Threat Intelligence indicators,
+
+```
+root@corelight:/opt/docker/compose/corelightathome-docker# diff -u ./corelight-update/configs/defaultPolicy/db-config.yaml.example ./corelight-update/configs/defaultPolicy/db-config.yaml   
+--- ./corelight-update/configs/defaultPolicy/db-config.yaml.example     2023-09-28 14:57:56.585139366 +1000
++++ ./corelight-update/configs/defaultPolicy/db-config.yaml     2023-09-28 15:11:17.256964907 +1000
+@@ -6,15 +6,15 @@
+ input_management:
+     default_input: true
+ crowdstrike_config:
+-    id: ""
+-    secret: ""
++    id: "API_CLIENT_ID"
++    secret: "API_CLIENT_SECRET"
+     member_cid: ""
+-    cloud: us-1
++    cloud: us-2
+     host_override: ""
+     base_path_override: ""
+     debug: false
+ crowdstrike_indicators:
+-    enabled: false
++    enabled: true
+     interval_hours: 1
+     request_limit: 10000
+     enable_do_notice: true
+root@corelight:/opt/docker/compose/corelightathome-docker# 
+```
+
+NOTE: There does not appear to be a reason to set member_cid
+NOTE: If using `crowdstrike_indicators.targets` or `crowdstrike_indicators.threat_types` you will likely need to single quote encapsulate strings. e.g. 'Technology' for threat_types. You'll get an error otherwise.
 
 # Run
 
+You should be using `docker compose up` or similar, e.g. with `-d` to detach unless you really want the container to output to your terminal immediately.
+
+View the container logs using `docker logs %{CONTAINER_ID}%` in preference to not detaching simply to view logs.
+
+The docker entrypoint script performs the following, so you may see output related to:
+1. Output of the env var $CORELIGHT_LICENSE to /etc/corelight-license.txt
+2. `corelight-update` modifications to global settings, including setting Maxmind GeoIP from env variables
+3. `corelight-update -o` running and completing successfully (hopefully!) first before anything else happens
+4. A forked nohup'ed instance of `corelight-update` being started
+5. `/opt/corelight/bin/corelight-softsensor start` running and remaining attached
+
 ```
-root@corelight:/opt/docker/compose/corelightathome-docker# sh up.sh --detach
-[+] Running 1/1
- ⠿ Container corelight-corelight-1  Started                                                                                                                                                                                                        0.2s
+root@corelight:/opt/docker/compose/corelightathome-docker# docker compose up -d                                                                                                                                      
+[+] Running 1/1                                                                                                                                                                                                      
+ ✔ Container corelightathome-docker-corelight-1  Started                                                                                                                                                        0.0s 
 root@corelight:/opt/docker/compose/corelightathome-docker# docker ps
-CONTAINER ID   IMAGE                           COMMAND                  CREATED         STATUS         PORTS     NAMES
-58977f243939   colin-stubbs/corelight:latest   "/bin/sh -c /usr/loc…"   3 minutes ago   Up 4 seconds             corelight-corelight-1
-root@corelight:/opt/docker/compose/corelightathome-docker# docker logs -t 58977f243939
-2022-08-09T22:33:56.739582622Z supervisor: Licensed to corelighthome until 2023-06-13 00:00:00 UTC
-2022-08-09T22:33:56.759544810Z Starting Corelight Software Sensor...
-2022-08-09T22:33:56.856090495Z     Failed to disable offloading
-2022-08-09T22:33:56.856453564Z     Failed to bring up interface
-2022-08-09T22:33:56.856597211Z supervisor: Disabling hardware features on eth0 and bringing up the interface...done
-2022-08-09T22:33:58.672213586Z suricata: This is Suricata version 6.0.5-corelight RELEASE running in SYSTEM mode
-2022-08-09T22:33:58.674408445Z suricata: Preparing unexpected signal handling
-2022-08-09T22:33:59.671984077Z suricata: [ERRCODE: SC_WARN_JA3_DISABLED(309)] - ja3 support is not enabled
-2022-08-09T22:33:59.755840419Z suricata: [ERRCODE: SC_ERR_INVALID_SIGNATURE(39)] - error parsing signature "alert tls $HOME_NET any -> $EXTERNAL_NET any (msg:"ET JA3 Hash - Suspected Cobalt Strike Malleable C2 M1 (set)"; flow:established,to_server; ja3.hash; content:"eb88d0b3e1961a0562f006e5ce2a0b87"; ja3.string; content:"771,49192-49191-49172-49171"; flowbits:set,ET.cobaltstrike.ja3; flowbits:noalert; classtype:command-and-control; sid:2028831; rev:1; metadata:affected_product Windows_XP_Vista_7_8_10_Server_32_64_Bit, attack_target Client_Endpoint, created_at 2019_10_15, deployment Perimeter, former_category JA3, malware_family Cobalt_Strike, signature_severity Major, updated_at 2019_10_15, mitre_tactic_id TA0011, mitre_tactic_name Command_And_Control, mitre_technique_id T1001, mitre_technique_name Data_Obfuscation;)" from file /etc/corelight/rules/suricata.rules at line 8602
-2022-08-09T22:33:59.757097587Z suricata: [ERRCODE: SC_WARN_JA3_DISABLED(309)] - ja3(s) support is not enabled
-2022-08-09T22:33:59.806356721Z suricata: [ERRCODE: SC_ERR_INVALID_SIGNATURE(39)] - error parsing signature "alert tls $EXTERNAL_NET any -> $HOME_NET any (msg:"ET JA3 HASH - Possible RustyBuer Server Response"; flowbits:isset,ET.rustybuer; ja3s.hash; content:"f6dfdd25d1522e4e1c7cd09bd37ce619"; reference:md5,ea98a9d6ca6f5b2a0820303a1d327593; classtype:bad-unknown; sid:2032960; rev:1; metadata:attack_target Client_Endpoint, created_at 2021_05_13, deployment Perimeter, former_category JA3, malware_family RustyBuer, performance_impact Low, signature_severity Major, updated_at 2021_05_13;)" from file /etc/corelight/rules/suricata.rules at line 8727
-2022-08-09T22:33:59.809236089Z supervisor: Running 4 Zeek workers.
-2022-08-09T22:34:05.676002116Z suricata: 1 rule files processed. 27271 rules successfully loaded, 131 rules failed
-2022-08-09T22:34:05.677005843Z suricata: Threshold config parsed: 0 rule(s) found
-2022-08-09T22:34:07.677907627Z suricata: 27274 signatures processed. 1236 are IP-only rules, 5126 are inspecting packet payload, 20885 inspect application layer, 0 are decoder event only
-2022-08-09T22:34:11.681345347Z manager: Loading license from environment variable
-2022-08-09T22:34:11.685967617Z manager: rdp-inference-server-wl.txt/Input::READER_ASCII: Could not read input data file /etc/corelight/input_files/rdp-inference-server-wl.txt; first line could not be read
-2022-08-09T22:34:11.689231183Z manager: ssh-inference-server-wl.txt/Input::READER_ASCII: Could not read input data file /etc/corelight/input_files/ssh-inference-server-wl.txt; first line could not be read
-2022-08-09T22:34:11.690187133Z manager: stepping-stone-server-wl.txt/Input::READER_ASCII: Could not read input data file /etc/corelight/input_files/stepping-stone-server-wl.txt; first line could not be read
-2022-08-09T22:34:11.692765023Z manager: error in /builtin/base/frameworks/broker/log.zeek, line 83: Broker error (Broker::PEER_UNAVAILABLE): (invalid-node, *127.0.0.1:27762, "unable to connect to remote peer")
-2022-08-09T22:34:11.694448277Z manager: /etc/corelight/intel/zeek.intel/Input::READER_ASCII: Did not find requested field indicator in input data file /etc/corelight/intel/zeek.intel.
-2022-08-09T22:34:13.702431676Z logger: Rotated/postprocessed leftover log 'broker.log' -> 'broker-22-08-09_00.30.23.log'
-2022-08-09T22:34:13.711892101Z logger: Rotated/postprocessed leftover log 'cluster.log' -> 'cluster-22-08-09_00.30.23.log'
-2022-08-09T22:34:13.712739015Z logger: Rotated/postprocessed leftover log 'reporter.log' -> 'reporter-22-08-09_00.30.23.log'
-2022-08-09T22:34:13.714042238Z logger: Rotated/postprocessed leftover log 'corelight_license_capacity.log' -> 'corelight_license_capacity-22-08-09_00.30.43.log'
-2022-08-09T22:34:13.714752043Z logger: Rotated/postprocessed leftover log 'suricata_zeek_stats.log' -> 'suricata_zeek_stats-22-08-09_00.31.23.log'
-2022-08-09T22:34:13.715850824Z logger: Rotated/postprocessed leftover log 'conn.log' -> 'conn-22-08-09_00.31.24.log'
-2022-08-09T22:34:13.715938063Z logger: Rotated/postprocessed leftover log 'weird.log' -> 'weird-22-08-09_00.31.26.log'
-2022-08-09T22:34:13.716463408Z logger: Rotated/postprocessed leftover log 'ssl.log' -> 'ssl-22-08-09_00.31.28.log'
-2022-08-09T22:34:13.722959707Z logger: Rotated/postprocessed leftover log 'software.log' -> 'software-22-08-09_00.31.29.log'
-2022-08-09T22:34:13.724527871Z logger: Rotated/postprocessed leftover log 'unknown_mime_type_discovery.log' -> 'unknown_mime_type_discovery-22-08-09_00.31.29.log'
-2022-08-09T22:34:13.726637897Z logger: Rotated/postprocessed leftover log 'files.log' -> 'files-22-08-09_00.31.29.log'
-2022-08-09T22:34:13.727559625Z logger: Rotated/postprocessed leftover log 'dns.log' -> 'dns-22-08-09_00.31.30.log'
-2022-08-09T22:34:13.729698484Z logger: Rotated/postprocessed leftover log 'http.log' -> 'http-22-08-09_00.31.34.log'
-2022-08-09T22:34:55.727933263Z suricata: [ERRCODE: SC_ERR_SYSCALL(50)] - Failure when trying to set feature via ioctl for 'eth0': Operation not permitted (1)
-2022-08-09T22:34:55.730720058Z suricata: all 4 packet processing threads, 5 management threads initialized, engine started.
-2022-08-09T22:34:55.732815140Z suricata: [ERRCODE: SC_ERR_THREAD_NICE_PRIO(47)] - Error setting nice value -2 for thread W#01-eth0: Operation not permitted
-2022-08-09T22:34:55.734807742Z suricata: [ERRCODE: SC_ERR_THREAD_NICE_PRIO(47)] - Error setting nice value -2 for thread W#02-eth0: Operation not permitted
-2022-08-09T22:34:55.736346258Z suricata: [ERRCODE: SC_ERR_THREAD_NICE_PRIO(47)] - Error setting nice value -2 for thread W#03-eth0: Operation not permitted
-2022-08-09T22:34:55.737959920Z suricata: [ERRCODE: SC_ERR_THREAD_NICE_PRIO(47)] - Error setting nice value -2 for thread W#04-eth0: Operation not permitted
-2022-08-09T22:37:35.848523307Z supervisor: Licensed to corelighthome until 2023-06-13 00:00:00 UTC
-2022-08-09T22:37:35.868384548Z Starting Corelight Software Sensor...
-2022-08-09T22:37:35.957275160Z     Failed to disable offloading
-2022-08-09T22:37:35.957422861Z     Failed to bring up interface
-2022-08-09T22:37:35.957435639Z supervisor: Disabling hardware features on eth0 and bringing up the interface...done
-2022-08-09T22:37:37.786019101Z suricata: This is Suricata version 6.0.5-corelight RELEASE running in SYSTEM mode
-2022-08-09T22:37:37.788324957Z suricata: Preparing unexpected signal handling
-2022-08-09T22:37:37.792595639Z suricata: [ERRCODE: SC_WARN_JA3_DISABLED(309)] - ja3 support is not enabled
-2022-08-09T22:37:37.863385114Z suricata: [ERRCODE: SC_ERR_INVALID_SIGNATURE(39)] - error parsing signature "alert tls $HOME_NET any -> $EXTERNAL_NET any (msg:"ET JA3 Hash - Suspected Cobalt Strike Malleable C2 M1 (set)"; flow:established,to_server; ja3.hash; content:"eb88d0b3e1961a0562f006e5ce2a0b87"; ja3.string; content:"771,49192-49191-49172-49171"; flowbits:set,ET.cobaltstrike.ja3; flowbits:noalert; classtype:command-and-control; sid:2028831; rev:1; metadata:affected_product Windows_XP_Vista_7_8_10_Server_32_64_Bit, attack_target Client_Endpoint, created_at 2019_10_15, deployment Perimeter, former_category JA3, malware_family Cobalt_Strike, signature_severity Major, updated_at 2019_10_15, mitre_tactic_id TA0011, mitre_tactic_name Command_And_Control, mitre_technique_id T1001, mitre_technique_name Data_Obfuscation;)" from file /etc/corelight/rules/suricata.rules at line 8602
-2022-08-09T22:37:37.864424710Z suricata: [ERRCODE: SC_WARN_JA3_DISABLED(309)] - ja3(s) support is not enabled
-2022-08-09T22:37:37.891999492Z suricata: [ERRCODE: SC_ERR_INVALID_SIGNATURE(39)] - error parsing signature "alert tls $EXTERNAL_NET any -> $HOME_NET any (msg:"ET JA3 HASH - Possible RustyBuer Server Response"; flowbits:isset,ET.rustybuer; ja3s.hash; content:"f6dfdd25d1522e4e1c7cd09bd37ce619"; reference:md5,ea98a9d6ca6f5b2a0820303a1d327593; classtype:bad-unknown; sid:2032960; rev:1; metadata:attack_target Client_Endpoint, created_at 2021_05_13, deployment Perimeter, former_category JA3, malware_family RustyBuer, performance_impact Low, signature_severity Major, updated_at 2021_05_13;)" from file /etc/corelight/rules/suricata.rules at line 8727
-2022-08-09T22:37:38.892663952Z supervisor: Running 4 Zeek workers.
-2022-08-09T22:37:42.786317901Z suricata: 1 rule files processed. 27271 rules successfully loaded, 131 rules failed
-2022-08-09T22:37:44.405313689Z suricata: Threshold config parsed: 0 rule(s) found
-root@corelight:/opt/docker/compose/corelightathome-docker#
-root@corelight:/opt/docker/compose/corelightathome-docker# cat data/logs/2022-08-09/capture_loss_20220809_22\:35\:12-22\:35\:14+0000.log
-{"_path":"capture_loss","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:35:12.634291Z","_node":"worker-03","ts":"2022-08-09T22:35:12.634291Z","ts_delta":60.00007891654968,"peer":"worker-03","gaps":0,"acks":0,"percent_lost":0.0}
-{"_path":"capture_loss","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:35:13.562008Z","_node":"worker-02","ts":"2022-08-09T22:35:13.562008Z","ts_delta":60.00023794174194,"peer":"worker-02","gaps":0,"acks":0,"percent_lost":0.0}
-{"_path":"capture_loss","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:35:13.578905Z","_node":"worker-04","ts":"2022-08-09T22:35:13.578905Z","ts_delta":60.00014519691467,"peer":"worker-04","gaps":0,"acks":0,"percent_lost":0.0}
-{"_path":"capture_loss","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:35:13.799100Z","_node":"worker-01","ts":"2022-08-09T22:35:13.799100Z","ts_delta":60.000165939331058,"peer":"worker-01","gaps":0,"acks":0,"percent_lost":0.0}
-root@corelight:/opt/docker/compose/corelightathome-docker#
-root@corelight:/opt/docker/compose/corelightathome-docker# cat data/logs/2022-08-09/cluster_20220809_22\:35\:11-22\:35\:13+0000.log
-{"_path":"cluster","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:35:11.141325Z","_node":"manager","ts":"2022-08-09T22:35:11.141325Z","node":"manager","message":"got hello from logger (2D28DB73859BF318F64B5CA57D4C1F591DE35AF6#37)"}
-{"_path":"cluster","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:35:12.637562Z","_node":"logger","ts":"2022-08-09T22:35:12.637562Z","node":"logger","message":"got hello from worker-03 (B7F80D04559960FC83ADB8D73DBC11FC7EF509AA#60)"}
-{"_path":"cluster","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:35:12.631029Z","_node":"worker-03","ts":"2022-08-09T22:35:12.631029Z","node":"worker-03","message":"got hello from logger (2D28DB73859BF318F64B5CA57D4C1F591DE35AF6#37)"}
-{"_path":"cluster","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:35:12.086711Z","_node":"proxy-1","ts":"2022-08-09T22:35:12.086711Z","node":"proxy-1","message":"got hello from logger (2D28DB73859BF318F64B5CA57D4C1F591DE35AF6#37)"}
-root@corelight:/opt/docker/compose/corelightathome-docker#
-root@corelight:/opt/docker/compose/corelightathome-docker# cat data/logs/2022-08-09/broker_20220809_22\:34\:14-22\:35\:13+0000.log
-{"_path":"broker","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:34:14.715893Z","_node":"worker-02","ts":"2022-08-09T22:34:14.715893Z","ty":"Broker::STATUS","ev":"peer-added","peer.address":"127.0.0.1","peer.bound_port":30000,"message":"handshake successful"}
-{"_path":"broker","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:34:14.709537Z","_node":"worker-04","ts":"2022-08-09T22:34:14.709537Z","ty":"Broker::STATUS","ev":"peer-added","peer.address":"127.0.0.1","peer.bound_port":30000,"message":"handshake successful"}
-{"_path":"broker","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:34:14.891797Z","_node":"worker-01","ts":"2022-08-09T22:34:14.891797Z","ty":"Broker::STATUS","ev":"peer-added","peer.address":"127.0.0.1","peer.bound_port":30000,"message":"handshake successful"}
-{"_path":"broker","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:35:11.139773Z","_node":"manager","ts":"2022-08-09T22:35:11.139773Z","ty":"Broker::STATUS","ev":"peer-added","peer.address":"127.0.0.1","peer.bound_port":27762,"message":"handshake successful"}
-{"_path":"broker","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:35:12.628538Z","_node":"logger","ts":"2022-08-09T22:35:12.628538Z","ty":"Broker::STATUS","ev":"peer-added","peer.address":"::ffff:127.0.0.1","peer.bound_port":32920,"message":"handshake successful"}
-{"_path":"broker","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:35:12.628589Z","_node":"worker-03","ts":"2022-08-09T22:35:12.628589Z","ty":"Broker::STATUS","ev":"peer-added","peer.address":"127.0.0.1","peer.bound_port":27762,"message":"handshake successful"}
-{"_path":"broker","_system_name":"corelight.localdomain","_write_ts":"2022-08-09T22:35:12.084606Z","_node":"proxy-1","ts":"2022-08-09T22:35:12.084606Z","ty":"Broker::STATUS","ev":"peer-added","peer.address":"127.0.0.1","peer.bound_port":27762,"message":"handshake successful"}
-root@corelight:/opt/docker/compose/corelightathome-docker#
+CONTAINER ID   IMAGE              COMMAND                  CREATED         STATUS         PORTS     NAMES
+d1833b6acd29   corelight:latest   "/bin/sh -c /usr/loc…"   4 seconds ago   Up 3 seconds             corelightathome-docker-corelight-1
+root@corelight:/opt/docker/compose/corelightathome-docker# 
+root@corelight:/opt/docker/compose/corelightathome-docker# docker logs d1833b6acd29
+2023/09/28 05:50:56 ** Starting Global Tasks **
+2023/09/28 05:50:57 Downloaded: /var/corelight-update/working/all/suricata-sources/corelight.rules
+2023/09/28 05:50:57 Downloaded source: Corelight
+2023/09/28 05:50:57 ** Finished Global Tasks **
+2023/09/28 05:50:57 Auto Policy Update enabled, auto-updating policies
+2023/09/28 05:50:57 Successfully updated policy defaultPolicy
+2023/09/28 05:50:57 ** Starting Process and Deploy for policy: defaultPolicy **
+2023/09/28 05:50:57 ** Starting processing policy: defaultPolicy **
+2023/09/28 05:50:57 Using global suricata source for Corelight
+2023/09/28 05:51:31 Downloaded: /var/corelight-update/working/defaultPolicy/suricata-sources/emerging.rules.tar.gz
+2023/09/28 05:51:31 Downloaded source: ET/Open
+2023/09/28 05:51:33 Downloaded: /var/corelight-update/working/defaultPolicy/suricata-sources/sslblacklist.rules
+2023/09/28 05:51:33 Downloaded source: SSLBL
+2023/09/28 05:51:33 ** Start Processing CrowdStrike Indicators for defaultPolicy **
+Downloading CrowdStrike Intel for Indicator Type ip_address for policy: defaultPolicy
+2023/09/28 05:51:33 with filter: malicious_confidence:'high' + last_updated:>='2023-08-29' + type:'ip_address'
+Downloading Indicators 100% [] (7244/7244, 4104 indicators/s) [1s]
+Downloading CrowdStrike Intel for Indicator Type ip_address_block for policy: defaultPolicy
+2023/09/28 05:51:35 with filter: malicious_confidence:'high' + last_updated:>='2023-08-29' + type:'ip_address_block'
+    No new indicators to download
+Downloading CrowdStrike Intel for Indicator Type url for policy: defaultPolicy
+2023/09/28 05:51:35 with filter: malicious_confidence:'high' + last_updated:>='2023-08-29' + type:'url'
+Downloading Indicators 100% [] (209405/209405, 3115 indicators/s) [1m7s]   
+Downloading CrowdStrike Intel for Indicator Type email_address for policy: defaultPolicy
+2023/09/28 05:52:42 with filter: malicious_confidence:'high' + last_updated:>='2023-08-29' + type:'email_address'
+Downloading Indicators 100% [] (125/125, 500 indicators/s) [0s]
+Downloading CrowdStrike Intel for Indicator Type domain for policy: defaultPolicy
+2023/09/28 05:52:43 with filter: malicious_confidence:'high' + last_updated:>='2023-08-29' + type:'domain'
+Downloading Indicators 100% [] (187848/187848, 3327 indicators/s) [56s]    
+Downloading CrowdStrike Intel for Indicator Type x509_subject for policy: defaultPolicy
+2023/09/28 05:53:39 with filter: malicious_confidence:'high' + last_updated:>='2023-08-29' + type:'x509_subject'
+    No new indicators to download
+Downloading CrowdStrike Intel for Indicator Type username for policy: defaultPolicy
+2023/09/28 05:53:39 with filter: malicious_confidence:'high' + last_updated:>='2023-08-29' + type:'username'
+Downloading Indicators 100% [] (54/54, 245 indicators/s) [0s] 
+Downloading CrowdStrike Intel for Indicator Type hash_md5 for policy: defaultPolicy
+2023/09/28 05:53:40 with filter: malicious_confidence:'high' + last_updated:>='2023-09-25' + type:'hash_md5'
+Downloading Indicators  99% [] (125463/125464, 2784 indicators/s) [41s:0s]
+Downloading CrowdStrike Intel for Indicator Type hash_sha256 for policy: defaultPolicy
+2023/09/28 05:54:21 with filter: malicious_confidence:'high' + last_updated:>='2023-09-25' + type:'hash_sha256'
+Downloading Indicators  99% [] (128002/128005, 2751 indicators/s) [43s:0s] 
+Downloading CrowdStrike Intel for Indicator Type file_name for policy: defaultPolicy
+2023/09/28 05:55:05 with filter: malicious_confidence:'high' + last_updated:>='2023-08-29' + type:'file_name'
+Downloading Indicators 100% [] (55/55, 228 indicators/s) [0s] 
+2023/09/28 05:55:06 ** Finished Processing CrowdStrike Indicators for defaultPolicy **
+2023/09/28 05:55:06 Downloaded: /var/corelight-update/working/defaultPolicy/icannTLD/effective_tld_names.dat
+2023/09/28 05:55:10 179 changed rules from /opt/corelight-update/corelight-recommended/disable.conf
+2023/09/28 05:55:10 903 changed rules from /opt/corelight-update/corelight-recommended/enable.conf
+2023/09/28 05:55:10 Extracted IP rules from the Suricata ruleset:
+ disabled 211 Suricata rules
+ created 8633 Intel rules
+2023/09/28 05:55:10 Extracted JA3 rules from the Suricata ruleset:
+ disabled 107 Suricata rules
+ created 107 Intel rules
+2023/09/28 05:55:10 53654 total rules
+2023/09/28 05:55:10 40670 enabled rules
+2023/09/28 05:55:10 12984 disabled rules
+2023/09/28 05:55:11 Suricata Corelight RELEASE is installed
+2023/09/28 05:55:11 Suricata is testing ruleset: /var/corelight-update/working/defaultPolicy/suricata-output/suricata.rules
+2023/09/28 05:55:11 Testing ruleset with /etc/corelight-update/configs/defaultPolicy/suricata.yaml
+2023/09/28 05:55:11 Testing ruleset with /etc/corelight-update/configs/defaultPolicy/classification.config
+2023/09/28 05:55:11 Testing ruleset with /etc/corelight-update/configs/defaultPolicy/reference.config
+2023/09/28 05:55:11 Testing ruleset with /etc/corelight-update/configs/defaultPolicy/threshold.config
+28/9/2023 -- 05:55:11 - <Info> - Running suricata under test mode
+28/9/2023 -- 05:55:11 - <Notice> - This is Suricata version 6.0.14-corelight RELEASE running in SYSTEM mode
+28/9/2023 -- 05:55:11 - <Info> - CPUs/cores online: 4
+28/9/2023 -- 05:55:11 - <Info> - Setting engine mode to IDS mode by default
+28/9/2023 -- 05:55:11 - <Info> - HTTP memcap: 0
+28/9/2023 -- 05:55:11 - <Info> - FTP memcap: 67108864
+28/9/2023 -- 05:55:11 - <Info> - Preparing unexpected signal handling
+28/9/2023 -- 05:55:11 - <Info> - Max dump is 0
+28/9/2023 -- 05:55:11 - <Info> - Core dump setting attempted is 0
+28/9/2023 -- 05:55:11 - <Info> - Core dump size set to 0
+28/9/2023 -- 05:55:11 - <Warning> - [ERRCODE: SC_WARN_NO_STATS_LOGGERS(261)] - stats are enabled but no loggers are active
+28/9/2023 -- 05:55:14 - <Info> - 1 rule files processed. 40670 rules successfully loaded, 0 rules failed
+28/9/2023 -- 05:55:14 - <Info> - Threshold config parsed: 0 rule(s) found
+28/9/2023 -- 05:55:16 - <Info> - 40673 signatures processed. 1035 are IP-only rules, 5361 are inspecting packet payload, 34260 inspect application layer, 0 are decoder event only
+28/9/2023 -- 05:55:30 - <Notice> - Configuration provided was successfully loaded. Exiting.
+28/9/2023 -- 05:55:30 - <Info> - cleaning up signature grouping structure... complete
+
+Suricata-Main: no process found
+
+2023/09/28 05:55:30 error error reloading rules exit status 1
+2023/09/28 05:55:30 ** Start processing Intel files **
+2023/09/28 05:55:30 no disable.intel file - skipping
+2023/09/28 05:55:38 Added 471593 records to intel file
+2023/09/28 05:55:38 Removed 0 records from intel file
+2023/09/28 05:55:38 ** Finished processing Intel files **
+2023/09/28 05:55:39 ** Finished processing policy: defaultPolicy **
+2023/09/28 05:55:39 No Fleet details for policy: defaultPolicy
+2023/09/28 05:55:39 ** Starting deploying to non-Fleet managed sensors for policy: defaultPolicy **
+2023/09/28 05:55:39 ** Start pushing Intel for policy: defaultPolicy **
+2023/09/28 05:55:39 Push Intel for sensor: docker
+2023/09/28 05:55:39 Copying /var/corelight-update/files/defaultPolicy/intel-files/intel.dat to /etc/corelight/intel/intel.dat
+2023/09/28 05:55:39 ** Finished pushing Intel for policy: defaultPolicy **
+2023/09/28 05:55:39 ** Starting push Suricata files for policy: defaultPolicy **
+2023/09/28 05:55:39 Push Suricata for sensor: docker
+2023/09/28 05:55:39 Copying /var/corelight-update/files/defaultPolicy/suricata-rulesets/suricata.rules to /etc/corelight/rules/suricata.rules
+2023/09/28 05:55:39 Copying /etc/corelight-update/configs/defaultPolicy/suricata.yaml to /var/corelight/suricata/suricata.yaml
+2023/09/28 05:55:39 Copying /etc/corelight-update/configs/defaultPolicy/threshold.config to /var/corelight/suricata/threshold.config
+2023/09/28 05:55:39 Copying /etc/corelight-update/configs/defaultPolicy/classification.config to /var/corelight/suricata/classification.config
+2023/09/28 05:55:39 Copying /etc/corelight-update/configs/defaultPolicy/reference.config to /var/corelight/suricata/reference.config
+2023/09/28 05:55:39 ** Finished push Suricata files to sensors for policy: defaultPolicy **
+2023/09/28 05:55:39 No new Package bundle to deploy for policy: defaultPolicy
+2023/09/28 05:55:39 ** Starting pushing Input files for policy: defaultPolicy **
+2023/09/28 05:55:39 Push Input files for sensor: docker
+2023/09/28 05:55:39 Copying /var/corelight-update/files/defaultPolicy/input-files/1st_level_public_icann.dat to /etc/corelight/input_files/1st_level_public_icann.dat
+2023/09/28 05:55:39 Copying /var/corelight-update/files/defaultPolicy/input-files/2nd_level_public_icann.dat to /etc/corelight/input_files/2nd_level_public_icann.dat
+2023/09/28 05:55:39 Copying /var/corelight-update/files/defaultPolicy/input-files/3rd_level_public_icann.dat to /etc/corelight/input_files/3rd_level_public_icann.dat
+2023/09/28 05:55:39 Copying /var/corelight-update/files/defaultPolicy/input-files/4th_level_public_icann.dat to /etc/corelight/input_files/4th_level_public_icann.dat
+2023/09/28 05:55:39 Copying /var/corelight-update/files/defaultPolicy/input-files/cert-hygiene-server-wl.txt to /etc/corelight/input_files/cert-hygiene-server-wl.txt
+2023/09/28 05:55:39 Copying /var/corelight-update/files/defaultPolicy/input-files/cert-hygiene-sni-wl.txt to /etc/corelight/input_files/cert-hygiene-sni-wl.txt
+2023/09/28 05:55:39 Copying /var/corelight-update/files/defaultPolicy/input-files/datared-dns-domain-wl.txt to /etc/corelight/input_files/datared-dns-domain-wl.txt
+2023/09/28 05:55:39 Copying /var/corelight-update/files/defaultPolicy/input-files/datared-files-mime-wl.txt to /etc/corelight/input_files/datared-files-mime-wl.txt
+2023/09/28 05:55:39 Copying /var/corelight-update/files/defaultPolicy/input-files/datared-http-hostname-wl.txt to /etc/corelight/input_files/datared-http-hostname-wl.txt
+2023/09/28 05:55:39 Copying /var/corelight-update/files/defaultPolicy/input-files/datared-http-uri-wl.txt to /etc/corelight/input_files/datared-http-uri-wl.txt
+2023/09/28 05:55:39 Copying /var/corelight-update/files/defaultPolicy/input-files/datared-weird-name-wl.txt to /etc/corelight/input_files/datared-weird-name-wl.txt
+2023/09/28 05:55:39 Copying /var/corelight-update/files/defaultPolicy/input-files/encryption-detection-server-wl.txt to /etc/corelight/input_files/encryption-detection-server-wl.txt
+2023/09/28 05:55:39 Copying /var/corelight-update/files/defaultPolicy/input-files/sni-wl.txt to /etc/corelight/input_files/sni-wl.txt
+2023/09/28 05:55:39 Copying /var/corelight-update/files/defaultPolicy/input-files/ssh-inference-server-wl.txt to /etc/corelight/input_files/ssh-inference-server-wl.txt
+2023/09/28 05:55:39 Copying /var/corelight-update/files/defaultPolicy/input-files/stepping-stone-server-wl.txt to /etc/corelight/input_files/stepping-stone-server-wl.txt
+2023/09/28 05:55:39 Copying /var/corelight-update/files/defaultPolicy/input-files/trusted_domains.dat to /etc/corelight/input_files/trusted_domains.dat
+2023/09/28 05:55:39 ** Finished pushing general Input files for policy: defaultPolicy **
+2023/09/28 05:55:39 ** Finished deploying for policy: defaultPolicy **
+2023/09/28 05:55:39 ** Finished Process and Deploy for policy: defaultPolicy **
+Starting corelight-softsensor...
+supervisor: Licensed to corelighthome until 2024-06-13 00:00:00 UTC
+Starting Corelight Software Sensor...
+supervisor: Disabling hardware features on eth0 and bringing up the interface...done
+supervisor: Running 4 Zeek workers.
+suricata: This is Suricata version 6.0.14-corelight RELEASE running in SYSTEM mode
+logger: Rotated/postprocessed leftover log 'conn.log' -> 'conn-23-09-28_05.00.01.log' 
+logger: Rotated/postprocessed leftover log 'suricata_zeek_stats.log' -> 'suricata_zeek_stats-23-09-28_05.00.01.log' 
+logger: Rotated/postprocessed leftover log 'http.log' -> 'http-23-09-28_05.00.01.log' 
+logger: Rotated/postprocessed leftover log 'unknown_mime_type_discovery.log' -> 'unknown_mime_type_discovery-23-09-28_05.00.01.log' 
+logger: Rotated/postprocessed leftover log 'files.log' -> 'files-23-09-28_05.00.01.log' 
+logger: Rotated/postprocessed leftover log 'weird.log' -> 'weird-23-09-28_05.00.01.log' 
+logger: Rotated/postprocessed leftover log 'dns.log' -> 'dns-23-09-28_05.00.02.log' 
+logger: Rotated/postprocessed leftover log 'ssl.log' -> 'ssl-23-09-28_05.00.02.log' 
+logger: Rotated/postprocessed leftover log 'dhcp.log' -> 'dhcp-23-09-28_05.00.21.log' 
+logger: Rotated/postprocessed leftover log 'ssh.log' -> 'ssh-23-09-28_05.00.22.log' 
+logger: Rotated/postprocessed leftover log 'ntp.log' -> 'ntp-23-09-28_05.03.13.log' 
+logger: Rotated/postprocessed leftover log 'suricata_corelight.log' -> 'suricata_corelight-23-09-28_05.04.17.log' 
+logger: Rotated/postprocessed leftover log 'syslog.log' -> 'syslog-23-09-28_05.04.21.log' 
+logger: Rotated/postprocessed leftover log 'stats.log' -> 'stats-23-09-28_05.04.33.log' 
+logger: Rotated/postprocessed leftover log 'notice.log' -> 'notice-23-09-28_05.04.41.log' 
+logger: Rotated/postprocessed leftover log 'conn_long.log' -> 'conn_long-23-09-28_05.04.41.log' 
+logger: Rotated/postprocessed leftover log 'dpd.log' -> 'dpd-23-09-28_05.05.09.log' 
+logger: Rotated/postprocessed leftover log 'weird_stats.log' -> 'weird_stats-23-09-28_05.05.25.log' 
+logger: Rotated/postprocessed leftover log 'corelight_license_capacity.log' -> 'corelight_license_capacity-23-09-28_05.05.25.log' 
+logger: Rotated/postprocessed leftover log 'capture_loss.log' -> 'capture_loss-23-09-28_05.05.34.log' 
+logger: Rotated/postprocessed leftover log 'reporter.log' -> 'reporter-23-09-28_05.09.26.log' 
+logger: Loading license from environment variable
+logger: cannot open /etc/corelight/input_files/rdp-inference-server-wl.txt
+worker-02: error in /builtin/corelight/conn-decorate.zeek, line 23: Failed to open GeoIP location database (lookup_location(c$id$orig_h))
+root@corelight:/opt/docker/compose/corelightathome-docker# 
 ```
 
 # Optional
 
-## Zeek Intelligence
+## Zeek Intelligence Feeds
 
-https://github.com/CriticalPathSecurity/Zeek-Intelligence-Feeds
+If you'd like to incorporate https://github.com/CriticalPathSecurity/Zeek-Intelligence-Feeds, be sure to clone that repo to a folder under `./zeek-intel/` e.g. `./zeek-intel/Zeek-Intelligence-Feeds`
 
+You can then modify local.zeek similar to the below,
+
+```
+## If there are additional scripts you would like to load, they can be defined in
+## this script.
+
+##! Load Intel Framework
+@load policy/integration/collective-intel
+@load policy/frameworks/intel/seen
+@load policy/frameworks/intel/do_notice
+redef Intel::read_files += {
+        "/etc/corelight/intel/intel.dat",
+# This assumes you've cloned https://github.com/CriticalPathSecurity/Zeek-Intelligence-Feeds to be available via /etc/corelight/intel/Zeek-Intelligence-Feeds/
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/Amnesty_NSO_Domains.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/Cyber_Threat_Coalition_Domain_Blacklist.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/abuse-ch-ipblocklist.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/abuse-ch-malware.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/abuse-ch-threatfox-ip.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/abuse-ch-urlhaus.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/abuse-ja3-fingerprints.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/alienvault.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/atomspam.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/binarydefense.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/censys.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/cloudzy.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/cobaltstrike_ips.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/compromised-ips.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/cps-collected-iocs.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/drb_ra_domain.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/drb_ra_ip.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/drb_ra_ip_unverified.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/ellio.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/fangxiao.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/filetransferportals.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/illuminate.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/illuminate_ja3.intel",
+# This one's huge and appears to likely be noise.
+##       "/etc/corelight/intel/Zeek-Intelligence-Feeds/inversion.intel",       
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/james-inthe-box.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/lockbit_ip.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/log4j_ip.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/mirai.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/openphish.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/predict_intel.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/ragnar.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/rutgers.intel",
+# Some JA3 fingerprints in here are common and useless to perform detection based on
+##        "/etc/corelight/intel/Zeek-Intelligence-Feeds/salesforce-ja3-fingerprints.intel",
+# This one's huge and appears to likely be noise.
+##        "/etc/corelight/intel/Zeek-Intelligence-Feeds/sans.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/scumbots.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/shadowwhisperer-malware.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/sip.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/stalkerware.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/talos.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/tor-exit.intel",
+        "/etc/corelight/intel/Zeek-Intelligence-Feeds/tweetfeed.intel",
+};
+
+## The Corelight Encrypted Traffic Collection (ETC)
+#@load Corelight/cert-hygiene
+#@load Corelight/ssh-inference
+#@load Corelight/ConnViz
+
+# Load the Community ID plugin to add the community ID hash to your conn log.
+#@load Corelight/CommunityID
+
+# Load Open Source Packages
+# NOTE: this came from https://github.com/corelight/softsensor-docker-prototype/blob/main/image-files/local.zeek.sh ?
+# NOTE: also referenced by corelight-update, however the folder may not exist until after corelight-update is first run?
+# Uncomment if it actually has a zeek package to load, if folder is empty corelight-softsensor will crash
+# @load /etc/corelight/packages
+```
+
+NOTE: You're responsible for scheduling regular `git pull`'s of Zeek-Intelligence-Feeds in order to receive updates.
+
+# Logging
+
+## Elastic
+
+TBC
+
+# Debugging
+
+Mostly you'll want to exec your way into the container using `docker exec -it %{CONTAINER_ID}% /bin/bash` so that you can poke around and work out what's going on.
+
+For example, to test and debug `corelight-update` do something like this where you manually run it with arguments `-o` to run once and if necessary with `-d` to enable debugging.
+
+```
+root@corelight:/opt/docker/compose/corelightathome-docker# docker exec -it 5be5ddd51ace /bin/bash
+root@corelight:/# corelight-update -o
+2023/09/28 05:39:40 ** Starting Global Tasks **
+2023/09/28 05:39:41 Resp Code: 304 Not Modified; Using cached /var/corelight-update/working/all/suricata-sources/corelight.rules
+2023/09/28 05:39:41 ** Finished Global Tasks **
+2023/09/28 05:39:41 Auto Policy Update enabled, auto-updating policies
+2023/09/28 05:39:41 Successfully updated policy defaultPolicy
+2023/09/28 05:39:41 ** Starting Process and Deploy for policy: defaultPolicy **
+2023/09/28 05:39:41 ** Starting processing policy: defaultPolicy **
+2023/09/28 05:39:41 Using global suricata source for Corelight
+2023/09/28 05:39:56 Downloaded: /var/corelight-update/working/defaultPolicy/suricata-sources/emerging.rules.tar.gz
+2023/09/28 05:39:56 Downloaded source: ET/Open
+2023/09/28 05:39:57 Resp Code: 304 Not Modified; Using cached /var/corelight-update/working/defaultPolicy/suricata-sources/sslblacklist.rules
+2023/09/28 05:39:57 Not processing CrowdStrikeIndicators based on an interval of 1 hours
+2023/09/28 05:39:57 Not processing ICANNTLD based on an interval of 24 hours
+2023/09/28 05:39:59 179 changed rules from /opt/corelight-update/corelight-recommended/disable.conf
+2023/09/28 05:39:59 903 changed rules from /opt/corelight-update/corelight-recommended/enable.conf
+2023/09/28 05:39:59 Extracted IP rules from the Suricata ruleset:
+ disabled 211 Suricata rules
+ created 8633 Intel rules
+2023/09/28 05:39:59 Extracted JA3 rules from the Suricata ruleset:
+ disabled 107 Suricata rules
+ created 107 Intel rules
+2023/09/28 05:39:59 53654 total rules
+2023/09/28 05:39:59 40670 enabled rules
+2023/09/28 05:39:59 12984 disabled rules
+2023/09/28 05:40:00 Suricata Corelight RELEASE is installed
+2023/09/28 05:40:00 Suricata is testing ruleset: /var/corelight-update/working/defaultPolicy/suricata-output/suricata.rules
+2023/09/28 05:40:00 Testing ruleset with /etc/corelight-update/configs/defaultPolicy/suricata.yaml
+2023/09/28 05:40:00 Testing ruleset with /etc/corelight-update/configs/defaultPolicy/classification.config
+2023/09/28 05:40:00 Testing ruleset with /etc/corelight-update/configs/defaultPolicy/reference.config
+2023/09/28 05:40:00 Testing ruleset with /etc/corelight-update/configs/defaultPolicy/threshold.config
+28/9/2023 -- 05:40:00 - <Info> - Running suricata under test mode
+28/9/2023 -- 05:40:00 - <Notice> - This is Suricata version 6.0.14-corelight RELEASE running in SYSTEM mode
+28/9/2023 -- 05:40:00 - <Info> - CPUs/cores online: 4
+28/9/2023 -- 05:40:00 - <Info> - Setting engine mode to IDS mode by default
+28/9/2023 -- 05:40:00 - <Info> - HTTP memcap: 0
+28/9/2023 -- 05:40:00 - <Info> - FTP memcap: 67108864
+28/9/2023 -- 05:40:00 - <Info> - Preparing unexpected signal handling
+28/9/2023 -- 05:40:00 - <Info> - Max dump is 0
+28/9/2023 -- 05:40:00 - <Info> - Core dump setting attempted is 0
+28/9/2023 -- 05:40:00 - <Info> - Core dump size set to 0
+28/9/2023 -- 05:40:00 - <Warning> - [ERRCODE: SC_WARN_NO_STATS_LOGGERS(261)] - stats are enabled but no loggers are active
+28/9/2023 -- 05:40:03 - <Info> - 1 rule files processed. 40670 rules successfully loaded, 0 rules failed
+28/9/2023 -- 05:40:03 - <Info> - Threshold config parsed: 0 rule(s) found
+28/9/2023 -- 05:40:05 - <Info> - 40673 signatures processed. 1035 are IP-only rules, 5361 are inspecting packet payload, 34260 inspect application layer, 0 are decoder event only
+28/9/2023 -- 05:40:19 - <Notice> - Configuration provided was successfully loaded. Exiting.
+28/9/2023 -- 05:40:20 - <Info> - cleaning up signature grouping structure... complete
+
+
+2023/09/28 05:40:20 ** Start processing Intel files **
+2023/09/28 05:40:20 no disable.intel file - skipping
+2023/09/28 05:40:20 Added 8646 records to intel file
+2023/09/28 05:40:20 Removed 0 records from intel file
+2023/09/28 05:40:20 ** Finished processing Intel files **
+2023/09/28 05:40:20 ** Finished processing policy: defaultPolicy **
+2023/09/28 05:40:20 No Fleet details for policy: defaultPolicy
+2023/09/28 05:40:20 ** Starting deploying to non-Fleet managed sensors for policy: defaultPolicy **
+2023/09/28 05:40:20 ** Start pushing Intel for policy: defaultPolicy **
+2023/09/28 05:40:20 Push Intel for sensor: docker
+2023/09/28 05:40:20 Copying /var/corelight-update/files/defaultPolicy/intel-files/intel.dat to /etc/corelight/intel/intel.dat
+2023/09/28 05:40:20 ** Finished pushing Intel for policy: defaultPolicy **
+2023/09/28 05:40:20 ** Starting push Suricata files for policy: defaultPolicy **
+2023/09/28 05:40:20 Push Suricata for sensor: docker
+2023/09/28 05:40:20 Copying /var/corelight-update/files/defaultPolicy/suricata-rulesets/suricata.rules to /etc/corelight/rules/suricata.rules
+2023/09/28 05:40:20 No new suricata.yaml to deploy for policy: defaultPolicy
+2023/09/28 05:40:20 No new threshold.config to deploy for policy: defaultPolicy
+2023/09/28 05:40:20 No new classification.config to deploy for policy: defaultPolicy
+2023/09/28 05:40:20 No new reference.config to deploy for policy: defaultPolicy
+2023/09/28 05:40:20 ** Finished push Suricata files to sensors for policy: defaultPolicy **
+2023/09/28 05:40:20 No new Package bundle to deploy for policy: defaultPolicy
+2023/09/28 05:40:20 No new Input Files to push for policy: defaultPolicy
+2023/09/28 05:40:20 ** Finished deploying for policy: defaultPolicy **
+2023/09/28 05:40:20 ** Finished Process and Deploy for policy: defaultPolicy **
+root@corelight:/# 
+```
+
+Debugging example, add `-D` to get even more info, e.g. sqlite queries.
+
+```
+root@corelight:/opt/docker/compose/corelightathome-docker# docker exec -it 5be5ddd51ace /bin/bash
+root@corelight:/# corelight-update -o -d
+2023/09/28 05:34:30 Global Config:
+{
+  "verbose": false,
+  "exp_features": false,
+  "webserver": {
+    "enable": false,
+    "tls": true,
+    "tls_cert": "/etc/corelight-update/global/cert.crt",
+    "tls_key": "/etc/corelight-update/global/cert.key",
+    "port": 8443
+  },
+  "process_feeds": true,
+  "interval_minutes": 60,
+  "geoip": {
+    "enabled": false,
+    "interval_hours": 0,
+    "account_id": REMOVED,
+    "license_key": "REMOVED",
+    "database_directory": "/var/corelight-update/files/all/geoip"
+  },
+  "remote_global_conf_files": [],
+  "parallel_push_limit": 10,
+  "auto_update_policies": {
+    "enable": true,
+    "filename": "db-config.yaml"
+  },
+  "sensor_timeout_settings": {
+    "transport_dialer_seconds": 0,
+    "tls_handshake_seconds": 0,
+    "idle_conn_seconds": 0,
+    "expect_continue_seconds": 0,
+    "http_seconds": 0,
+    "upload_wait_seconds": 0
+  }
+}
+2023/09/28 05:34:30 ** Starting Global Tasks **
+2023/09/28 05:34:30 Checking for new suricata sources to cache
+2023/09/28 05:34:30 suricata sources: [{1 0001-01-01 00:00:00 +0000 UTC 2023-09-28 05:32:38.69653612 +0000 UTC Corelight https://feed.corelight.com/corelight.rules suricata true   Authorization   false}]
+2023/09/28 05:34:31.258355 DEBUG RESTY 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /corelight.rules  HTTP/1.1
+HOST   : feed.corelight.com
+HEADERS:
+        Accept: */*
+        Cache-Control: no-cache
+        If-Modified-Since: Thu, 28 Sep 2023 04:03:33 GMT
+        User-Agent: (Corelight Inc.; Corelight-update; Build/1.8.1)
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 304 Not Modified
+PROTO        : HTTP/2.0
+RECEIVED AT  : 2023-09-28T05:34:31.258197647Z
+TIME DURATION: 409.945411ms
+HEADERS      :
+        Age: 113
+        Date: Thu, 28 Sep 2023 05:34:31 GMT
+        Etag: "4af19c3d40436b21aab3596fc0881cb5"
+        Server: AmazonS3
+        Vary: Accept-Encoding
+        Via: 1.1 48d8e85703699c2da097b0f28aa75248.cloudfront.net (CloudFront)
+        X-Amz-Cf-Id: adcFfykmeGv9bCyoQRCveXuRze6HC_sDrAJmCJW9CjYWgdCqpxy3wQ==
+        X-Amz-Cf-Pop: BNE50-P1
+        X-Amz-Server-Side-Encryption: AES256
+        X-Cache: Hit from cloudfront
+BODY         :
+
+==============================================================================
+2023/09/28 05:34:31 Resp Code: 304 Not Modified; Using cached /var/corelight-update/working/all/suricata-sources/corelight.rules
+2023/09/28 05:34:31 Checking for new intel sources to cache
+2023/09/28 05:34:31 No global intel sources configured
+2023/09/28 05:34:31 ** Finished Global Tasks **
+2023/09/28 05:34:31 Auto Policy Update enabled, auto-updating policies
+2023/09/28 05:34:31 Successfully updated policy defaultPolicy
+2023/09/28 05:34:31 ** Starting Process and Deploy for policy: defaultPolicy **
+2023/09/28 05:34:31 ** Starting processing policy: defaultPolicy **
+2023/09/28 05:34:31 Checking for new suricata sources to cache
+2023/09/28 05:34:31 suricata sources: [{1 0001-01-01 00:00:00 +0000 UTC 2023-09-28 05:34:31.378716613 +0000 UTC Corelight https://feed.corelight.com/corelight.rules suricata true   Authorization   false} {2 0001-01-01 00:00:00 +0000 UTC 2023-09-28 05:34:31.385144047 +0000 UTC ET/Open https://rules.emergingthreats.net/open/suricata-6.0/emerging.rules.tar.gz suricata false   Authorization   false} {3 0001-01-01 00:00:00 +0000 UTC 2023-09-28 05:34:31.395187155 +0000 UTC SSLBL https://sslbl.abuse.ch/blacklist/sslblacklist.rules suricata false   Authorization   false}]
+2023/09/28 05:34:31 Using global suricata source for Corelight
+
+%{BREVITY}%
+
+alert tls $EXTERNAL_NET any -> $HOME_NET any (msg:"SSLBL: Malicious SSL certificate detected (AsyncRAT C&C)"; tls.fingerprint:"1c:1a:4f:a6:fe:bd:e8:2d:9b:63:91:e0:f5:4b:77:6d:ea:c7:b8:1c"; reference:url, sslbl.abuse.ch/ssl-certificates/sha1/1c1a4fa6febde82d9b6391e0f54b776deac7b81c/; sid:902205477; rev:1;)
+# END (5478) entries
+==============================================================================
+2023/09/28 05:35:32 Downloaded: /var/corelight-update/working/defaultPolicy/suricata-sources/sslblacklist.rules
+2023/09/28 05:35:32 Downloaded source: SSLBL
+2023/09/28 05:35:32 Checking for new intel sources to cache
+2023/09/28 05:35:32 No policy intel sources configured
+2023/09/28 05:35:32 Checking for new input sources to cache
+2023/09/28 05:35:32 No policy input sources configured
+2023/09/28 05:35:32 Not processing CrowdStrikeIndicators based on an interval of 1 hours
+2023/09/28 05:35:32 Not processing ICANNTLD based on an interval of 24 hours
+
+2023/09/28 05:35:32 Old Input File State File: 
+[{Filename:cert-hygiene-server-wl.txt SHA1hash:a0b7c2ec50de838e7e22306934a9a72f0327c41e} {Filename:cert-hygiene-sni-wl.txt SHA1hash:95395af1de9916bb0a19032f8add6bc8434d8987} {Filename:datared-dns-domain-wl.txt SHA1hash:dec68bbd6cfe7a91c1e246475b3ffc5e722863f0} {Filename:datared-files-mime-wl.txt SHA1hash:9a10938f353e81166adbedc53805d4fd690d4351} {Filename:datared-http-hostname-wl.txt SHA1hash:b3b9de457c64ac435ef6479ae1f3cde453c8cb77} {Filename:datared-http-uri-wl.txt SHA1hash:fd0623bf72863a273ce104c2829f7ed557da4260} {Filename:datared-weird-name-wl.txt SHA1hash:95395af1de9916bb0a19032f8add6bc8434d8987} {Filename:encryption-detection-server-wl.txt SHA1hash:a0b7c2ec50de838e7e22306934a9a72f0327c41e} {Filename:sni-wl.txt SHA1hash:95395af1de9916bb0a19032f8add6bc8434d8987} {Filename:ssh-inference-server-wl.txt SHA1hash:a0b7c2ec50de838e7e22306934a9a72f0327c41e} {Filename:stepping-stone-server-wl.txt SHA1hash:a0b7c2ec50de838e7e22306934a9a72f0327c41e} {Filename:trusted_domains.dat SHA1hash:94e47c0cb907e1d6322c93525596943ab0da35db}]
+
+2023/09/28 05:35:32 D- New Input File State File: 
+[{Filename:cert-hygiene-server-wl.txt SHA1hash:a0b7c2ec50de838e7e22306934a9a72f0327c41e} {Filename:cert-hygiene-sni-wl.txt SHA1hash:95395af1de9916bb0a19032f8add6bc8434d8987} {Filename:datared-dns-domain-wl.txt SHA1hash:dec68bbd6cfe7a91c1e246475b3ffc5e722863f0} {Filename:datared-files-mime-wl.txt SHA1hash:9a10938f353e81166adbedc53805d4fd690d4351} {Filename:datared-http-hostname-wl.txt SHA1hash:b3b9de457c64ac435ef6479ae1f3cde453c8cb77} {Filename:datared-http-uri-wl.txt SHA1hash:fd0623bf72863a273ce104c2829f7ed557da4260} {Filename:datared-weird-name-wl.txt SHA1hash:95395af1de9916bb0a19032f8add6bc8434d8987} {Filename:encryption-detection-server-wl.txt SHA1hash:a0b7c2ec50de838e7e22306934a9a72f0327c41e} {Filename:sni-wl.txt SHA1hash:95395af1de9916bb0a19032f8add6bc8434d8987} {Filename:ssh-inference-server-wl.txt SHA1hash:a0b7c2ec50de838e7e22306934a9a72f0327c41e} {Filename:stepping-stone-server-wl.txt SHA1hash:a0b7c2ec50de838e7e22306934a9a72f0327c41e} {Filename:trusted_domains.dat SHA1hash:94e47c0cb907e1d6322c93525596943ab0da35db}]
+2023/09/28 05:35:32 0 changed rules from /opt/corelight-update/corelight-recommended/disable.conf
+2023/09/28 05:35:32 0 changed rules from /opt/corelight-update/corelight-recommended/enable.conf
+2023/09/28 05:35:32 Extracted IP rules from the Suricata ruleset:
+ disabled 0 Suricata rules
+ created 0 Intel rules
+2023/09/28 05:35:32 Extracted JA3 rules from the Suricata ruleset:
+ disabled 0 Suricata rules
+ created 0 Intel rules
+2023/09/28 05:35:32 5601 total rules
+2023/09/28 05:35:32 5598 enabled rules
+2023/09/28 05:35:32 3 disabled rules
+2023/09/28 05:35:32 Suricata Corelight RELEASE is installed
+2023/09/28 05:35:32 Suricata is testing ruleset: /var/corelight-update/working/defaultPolicy/suricata-output/suricata.rules
+2023/09/28 05:35:32 Testing ruleset with /etc/corelight-update/configs/defaultPolicy/suricata.yaml
+2023/09/28 05:35:32 Testing ruleset with /etc/corelight-update/configs/defaultPolicy/classification.config
+2023/09/28 05:35:32 Testing ruleset with /etc/corelight-update/configs/defaultPolicy/reference.config
+2023/09/28 05:35:32 Testing ruleset with /etc/corelight-update/configs/defaultPolicy/threshold.config
+28/9/2023 -- 05:35:32 - <Info> - Running suricata under test mode
+28/9/2023 -- 05:35:32 - <Notice> - This is Suricata version 6.0.14-corelight RELEASE running in SYSTEM mode
+28/9/2023 -- 05:35:32 - <Info> - CPUs/cores online: 4
+28/9/2023 -- 05:35:32 - <Info> - Setting engine mode to IDS mode by default
+28/9/2023 -- 05:35:32 - <Info> - HTTP memcap: 0
+28/9/2023 -- 05:35:32 - <Info> - FTP memcap: 67108864
+28/9/2023 -- 05:35:32 - <Info> - Preparing unexpected signal handling
+28/9/2023 -- 05:35:32 - <Info> - Max dump is 0
+28/9/2023 -- 05:35:32 - <Info> - Core dump setting attempted is 0
+28/9/2023 -- 05:35:32 - <Info> - Core dump size set to 0
+28/9/2023 -- 05:35:32 - <Warning> - [ERRCODE: SC_WARN_NO_STATS_LOGGERS(261)] - stats are enabled but no loggers are active
+28/9/2023 -- 05:35:33 - <Info> - 1 rule files processed. 5598 rules successfully loaded, 0 rules failed
+28/9/2023 -- 05:35:33 - <Info> - Threshold config parsed: 0 rule(s) found
+28/9/2023 -- 05:35:33 - <Info> - 5598 signatures processed. 0 are IP-only rules, 93 are inspecting packet payload, 5502 inspect application layer, 0 are decoder event only
+28/9/2023 -- 05:35:40 - <Notice> - Configuration provided was successfully loaded. Exiting.
+28/9/2023 -- 05:35:40 - <Info> - cleaning up signature grouping structure... complete
+
+
+2023/09/28 05:35:40 ** Start processing Intel files **
+2023/09/28 05:35:40 no disable.intel file - skipping
+2023/09/28 05:35:40 ----------WARNING: SKIPPING INTEL FILE---------
+2023/09/28 05:35:40 Skipping /var/corelight-update/working/defaultPolicy/intel/suricata-ip.dat: too few records
+2023/09/28 05:35:40 ----------WARNING: SKIPPING INTEL FILE---------
+2023/09/28 05:35:40 Skipping /var/corelight-update/working/defaultPolicy/intel/suricata-ja3.dat: too few records
+2023/09/28 05:35:40 Added 0 records to intel file
+2023/09/28 05:35:40 Removed 0 records from intel file
+2023/09/28 05:35:40 ** Finished processing Intel files **
+2023/09/28 05:35:40 ** Finished processing policy: defaultPolicy **
+2023/09/28 05:35:40 No Fleet details for policy: defaultPolicy
+2023/09/28 05:35:40 ** Starting deploying to non-Fleet managed sensors for policy: defaultPolicy **
+2023/09/28 05:35:40 ** Start pushing Intel for policy: defaultPolicy **
+2023/09/28 05:35:40 Push Intel for sensor: docker
+2023/09/28 05:35:40 Copying /var/corelight-update/files/defaultPolicy/intel-files/intel.dat to /etc/corelight/intel/intel.dat
+2023/09/28 05:35:40 ** Finished pushing Intel for policy: defaultPolicy **
+2023/09/28 05:35:40 ** Starting push Suricata files for policy: defaultPolicy **
+2023/09/28 05:35:40 Push Suricata for sensor: docker
+2023/09/28 05:35:40 Copying /var/corelight-update/files/defaultPolicy/suricata-rulesets/suricata.rules to /etc/corelight/rules/suricata.rules
+2023/09/28 05:35:40 Copying /etc/corelight-update/configs/defaultPolicy/suricata.yaml to /var/corelight/suricata/suricata.yaml
+2023/09/28 05:35:40 Copying /etc/corelight-update/configs/defaultPolicy/threshold.config to /var/corelight/suricata/threshold.config
+2023/09/28 05:35:40 Copying /etc/corelight-update/configs/defaultPolicy/classification.config to /var/corelight/suricata/classification.config
+2023/09/28 05:35:40 Copying /etc/corelight-update/configs/defaultPolicy/reference.config to /var/corelight/suricata/reference.config
+2023/09/28 05:35:40 ** Finished push Suricata files to sensors for policy: defaultPolicy **
+2023/09/28 05:35:40 No new Package bundle to deploy for policy: defaultPolicy
+2023/09/28 05:35:40 No new Input Files to push for policy: defaultPolicy
+2023/09/28 05:35:40 ** Finished deploying for policy: defaultPolicy **
+2023/09/28 05:35:40 ** Finished Process and Deploy for policy: defaultPolicy **
+root@corelight:/#
+```
