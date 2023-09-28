@@ -12,7 +12,7 @@ if [ "${CORELIGHT_LICENSE}x" != "x" ] ; then
 fi
 
 # configure corelight-update global settings from bind mounted file, edit as needed outside of the container
-corelight-update update -global -path /etc/corelight-update/global.yaml
+test -f /etc/corelight-update/global.yaml && corelight-update update -global -path /etc/corelight-update/global.yaml
 
 # run corelight-update once before starting to ensure all necessary files will exist and content is updated/available
 corelight-update -o
