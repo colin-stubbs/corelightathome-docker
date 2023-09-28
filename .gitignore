@@ -1,6 +1,7 @@
 .DS_Store
 .env
 data/
+geoip/
 zeek-intel/*
 suricata-rules/
 input_files/
