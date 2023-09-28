@@ -8,24 +8,24 @@ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 COPY zkg-config.cfg /root/zkg-config.cfg
 COPY profile_d_corelight.sh /etc/profile.d/corelight.sh
 
-RUN echo "### Updating packages" && \
+RUN echo "### Installing required packages" && \
   apt update && \
   apt -y install geoip-database git gnupg2 lsb-release file python3-pip iproute2 procps curl net-tools && \
-  echo "### Setting up CoreLight apt repository" && \
+  echo "### Setting up corelight apt repository" && \
   curl -fsSL https://packagecloud.io/corelight/stable/gpgkey | gpg --dearmor > /etc/apt/trusted.gpg.d/corelight_stable.gpg && \
   echo "deb [arch=arm64 signed-by=/etc/apt/trusted.gpg.d/corelight_stable.gpg] https://packagecloud.io/corelight/stable/debian bullseye main" > /etc/apt/sources.list.d/corelight-softsensor.list && \
   cat /etc/apt/sources.list.d/corelight-softsensor.list && \
+  echo "### Updating / upgrading packages" && \
   apt -y update && \
-  echo "### Updating O/S" && \
   apt -y upgrade &&  \
-  echo "### Installing CoreLight" && \
+  echo "### Installing corelight-softsensor and corelight-update" && \
   apt -y install corelight-softsensor corelight-update && \
   cp /etc/corelight-softsensor.conf.example /etc/corelight-softsensor.conf && \
   echo "### Installing zkg" && \
   python3 -m pip install "zkg" && \
   mkdir /root/.zkg && \
   cp /root/zkg-config.cfg /root/.zkg/config && \
-  echo "### Installing Suricata" && \
+  echo "### Installing suricata-update" && \
   pip3 install suricata-update && \
   echo "### Cleanup" && \
   apt clean cache ; \
