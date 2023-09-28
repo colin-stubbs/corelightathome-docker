@@ -20,8 +20,11 @@ test -n "${MAXMIND_LICENSE_KEY}" && corelight-update update -global-setting "geo
 test -n "${MAXMIND_ACCOUNT_ID}" && test -n "${MAXMIND_LICENSE_KEY}" && corelight-update update -global-setting "geoip.enable=true"
 test -n "${MAXMIND_ACCOUNT_ID}" && test -n "${MAXMIND_LICENSE_KEY}" && corelight-update update -global-setting "geoip.interval_hours=1"
 
-# run corelight-update continuously in the background
-nohup /bin/bash -l -c "corelight-update 1>/var/log/corelight-update.log 2>&1;" 1>/dev/null 2>&1 &
+# run corelight-update once before starting to ensure all necessary files will exist and content is updated/available
+corelight-update -o
+
+# run corelight-update continuously in the background after one hour from now
+nohup /bin/bash -l -c "sleep 3600 ; corelight-update 1>/var/log/corelight-update.log 2>&1;" 1>/dev/null 2>&1 &
 
 # NOTE: this script assumes that /etc/corelight-softsensor.conf exists and is correctly configured,
 # you should overwrite the default using a volume based import

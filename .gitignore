@@ -2,8 +2,7 @@
 .env
 data/
 suricata-update/update/
-zeek-intel/intel.dat
-zeek-intel/Zeek-Intelligence-Feeds/
+zeek-intel/*
 input_files/
 packages/
 corelight-update/configs/defaultPolicy/local-input
