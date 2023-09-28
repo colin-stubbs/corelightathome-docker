@@ -22,12 +22,14 @@ services:
       - ./container/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint
       - ./corelight-softsensor.conf:/etc/corelight-softsensor.conf
       - ./corelight-update/configs:/etc/corelight-update/configs
+      - ./corelight-update/working:/var/corelight-update/working
+      - ./corelight-update/files:/var/corelight-update/files
+      - ./corelight-update/packages:/etc/corelight/packages
       - ./local.zeek:/etc/corelight/local.zeek
       - ./zeek-intel:/etc/corelight/intel
       - ./suricata-update:/etc/corelight/suricata-update
       - ./suricata-rules:/etc/corelight/suricata-rules
       - ./input_files:/etc/corelight/input_files
-      - ./packages:/etc/corelight/packages
       - ./data:/var/corelight
     tmpfs:
       - /run/suricata
