@@ -6,3 +6,4 @@ zeek-intel/*
 input_files/
 packages/
 corelight-update/configs/defaultPolicy/local-input
+corelight-update/configs/defaultPolicy/db-config.yaml
