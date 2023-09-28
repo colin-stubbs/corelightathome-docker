@@ -15,7 +15,7 @@ crowdstrike_config:
     debug: false
 crowdstrike_indicators:
     enabled: false
-    interval_hours: 1
+    interval_hours: 0
     request_limit: 10000
     enable_do_notice: true
     malicious_confidence: high
@@ -36,7 +36,7 @@ crowdstrike_indicators:
     threat_types: ""
 crowdstrike_suricata:
     enabled: false
-    interval_hours: 1
+    interval_hours: 0
 crowdstrike_spotlight_cve:
     enabled: false
     interval_hours: 0
