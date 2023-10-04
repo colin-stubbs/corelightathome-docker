@@ -21,13 +21,21 @@ services:
     volumes:
       - ./container/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint
       - ./corelight-softsensor.conf:/etc/corelight-softsensor.conf
+      - ./corelight-update/global.yaml:/etc/corelight-update/global.yaml
       - ./corelight-update/configs:/etc/corelight-update/configs
+      - ./corelight-update/working:/var/corelight-update/working
+      - ./corelight-update/files:/var/corelight-update/files
+      - ./corelight-update/packages:/etc/corelight/packages
+      - ./corelight-update/global/global-bundle:/etc/corelight-update/global/global-bundle
+      - ./corelight-update/global/global-input:/etc/corelight-update/global/global-input
+      - ./corelight-update/global/global-intel:/etc/corelight-update/global/global-intel
+      - ./corelight-update/global/global-suricata:/etc/corelight-update/global/global-suricata
       - ./local.zeek:/etc/corelight/local.zeek
       - ./zeek-intel:/etc/corelight/intel
-      - ./suricata-update:/etc/corelight/suricata-update
-      - ./suricata-rules:/etc/corelight/suricata-rules
+      - ./GeoIP.conf:/etc/corelight-update/global/GeoIP.conf
+      - ./geoip:/usr/share/GeoIP
+      - ./suricata-rules:/etc/corelight/rules
       - ./input_files:/etc/corelight/input_files
-      - ./packages:/etc/corelight/packages
       - ./data:/var/corelight
     tmpfs:
       - /run/suricata

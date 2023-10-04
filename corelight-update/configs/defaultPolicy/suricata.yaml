@@ -197,6 +197,7 @@ pcap:
 "default-rule-path": /etc/corelight/rules/
 "rule-files":
   - "*.rules"
+  - /var/corelight-update/files/defaultPolicy/suricata-rulesets/suricata.rules
   - /var/corelight/suricata/package.rules
 vlan:
   "use-for-tracking": false

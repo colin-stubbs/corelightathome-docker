@@ -1,7 +1,7 @@
 verbose: false
 exp_features: false
 webserver:
-    enable: true
+    enable: false
     tls: true
     tls_cert: /etc/corelight-update/global/cert.crt
     tls_key: /etc/corelight-update/global/cert.key
@@ -13,7 +13,7 @@ geoip:
     interval_hours: 0
     account_id: 0
     license_key: ""
-    database_directory: /var/corelight-update/files/all/geoip
+    database_directory: /usr/share/GeoIP
 remote_global_conf_files: []
 parallel_push_limit: 10
 auto_update_policies:
