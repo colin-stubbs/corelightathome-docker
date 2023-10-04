@@ -159,6 +159,19 @@ CORELIGHT_LICENSE="LICENSEGOHERE"
 root@corelight:/opt/docker/compose/corelightathome-docker#
 ```
 
+### copy .example files
+
+Use the setup.sh script, it will prompt you to overwrite files if they already exist for some reason.
+
+```
+root@corelight:/opt/docker/compose/corelightathome-docker# sh setup.sh 
+'corelight-softsensor.conf.example' -> 'corelight-softsensor.conf'
+cp: overwrite 'local.zeek'? n
+cp: overwrite 'corelight-update/global.yaml'? n
+cp: overwrite 'corelight-update/configs/defaultPolicy/db-config.yaml'? n
+root@corelight:/opt/docker/compose/corelightathome-docker# 
+```
+
 ### corelight-update globals
 
 You'll need to edit `./corelight-update/global.yaml` to:
