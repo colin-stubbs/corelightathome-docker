@@ -4,8 +4,6 @@ services:
   corelight:
     build:
       context: container/
-      args:
-        MAXMIND_LICENSE_KEY: ${MAXMIND_LICENSE_KEY:-}
 
     image: corelight:latest
     network_mode: host
@@ -41,5 +39,6 @@ services:
       - /run/suricata
     environment:
       CORELIGHT_LICENSE: ${CORELIGHT_LICENSE:-FIX_ME}
+      CORELIGHT_UPDATE: ${CORELIGHT_UPDATE:-yes}
       MAXMIND_ACCOUNT_ID: ${MAXMIND_ACCOUNT_ID:-}
       MAXMIND_LICENSE_KEY: ${MAXMIND_LICENSE_KEY:-}

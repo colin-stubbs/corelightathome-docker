@@ -4,11 +4,11 @@ Corelight@Home in a docker container on a Raspberry Pi
 
 Refer to: https://corelight.com/blog/corelight-at-home
 
-Running Corelight@Home this way basically makes https://github.com/corelight/raspi-corelight unnecessary, which is great because it's garbage.
+Running Corelight@Home this way basically makes https://github.com/corelight/raspi-corelight unnecessary, though the install script in that repo is what the container build process has originally been based upon.
 
-Though the script in that repo is what the container build process has been based on.
+Running Corelight in a container is my preferred option. It is great because it's kind of a mess to install and run Corelight direct on the O/S and means you'll also wind up in a feature quagmire of support issues between O/S and Corelight packages.
 
-NOTE: This container now uses the `corelight-update` package to manage updates to the following,
+NOTE: This container now optionally uses the `corelight-update` package to manage updates to the following,
 1. GeoIP database content, assuming that you have a Maxmind GeoIP license to use, refer to https://www.maxmind.com/en/geolite2/signup
 2. Suricata rules,
   a. From whatever sources you configure in ./corelight-update/configs/defaultPolicy/db-config.yaml, e.g. CrowdStrike Intelligence (if you have an appropriate subscription!)
@@ -18,6 +18,14 @@ NOTE: This container now uses the `corelight-update` package to manage updates t
   b. From custom content under ./corelight-update/configs/defaultPolicy/local-intel
 4. Corelight/Zeek packages,
   a. NOTE: I have not tested this capability as yet so results may vary.
+
+The default is currently still to run `corelight-update` inside the container.
+
+Though I now strongly recommend you run `corelight-update` separately even if it's from the same Raspberry Pi.
+
+Refer to the documentation about environment variables that can be passed to the container.
+
+The new container spec for running `corelight-update` separately is available here: https://github.com/colin-stubbs/corelight-update-docker
 
 # Setup
 
@@ -156,8 +164,31 @@ root@corelight:/opt/docker/compose/corelightathome-docker# cp dot-env-example .e
 root@corelight:/opt/docker/compose/corelightathome-docker# vim .env
 root@corelight:/opt/docker/compose/corelightathome-docker# cat .env
 CORELIGHT_LICENSE="LICENSEGOHERE"
+CORELIGHT_UPDATE="1"
+MAXMIND_ACCOUNT_ID="ACCOUNT_ID_GOES_HERE"
+MAXMIND_LICENSE_KEY="LICENSE_KEY_GOES_HERE"
 root@corelight:/opt/docker/compose/corelightathome-docker#
 ```
+
+#### CORELIGHT_LICENSE
+
+This is the raw content from the `corelight-license.txt` that you received.
+
+#### CORELIGHT_UPDATE
+
+Indicates whether `corelight-update` should be run inside the container alongside the sensor.
+
+The default is to run `corelight-update` so you need to set this to a negative (1, false or no) if you want to continue running this here. You can alternatively run it as a seperate container on the same Raspberry Pi you're using for Corelight@Home, or somewhere else. The new container spec is available here: https://github.com/colin-stubbs/corelight-update-docker
+
+Values of `1`, `0`, `yes`, `no`, `true` or `false` will work.
+
+A case insenstive comparison is actually used so `Yes`, `YES`, `TRUE`, `True` will also be acknowledged.
+
+#### MAXMIND_ACCOUNT_ID & MAXMIND_LICENSE_KEY
+
+These are obtained after signing up for a free MaxMind GeoLite2 license here: https://www.maxmind.com/en/geolite2/signup
+
+Set as appropriate once you have a license.
 
 ### copy .example files
 
