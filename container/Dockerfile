@@ -1,4 +1,4 @@
-FROM debian:bullseye
+FROM debian:bookworm
 
 MAINTAINER Colin Stubbs <cstubbs@gmail.com>
 
