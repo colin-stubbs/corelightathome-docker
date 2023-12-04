@@ -29,10 +29,11 @@ if [ "${CORELIGHT_UPDATE}x" == "1x" ] || [ "${CORELIGHT_UPDATE}x" == "truex" ] |
   # modify maxmind account # and license key if provided via env variables
   # NOTE: both must be set.
   if [ "${MAXMIND_ACCOUNT_ID}x" != "x" ] && [ "${MAXMIND_LICENSE_KEY}x" != "x" ] ; then
-    sed -i.backup -r \
+    sed -r \
       -e "s/^    account_id: .*$/    account_id: ${MAXMIND_ACCOUNT_ID}/" \
       -e "s/^    license_key: .*$/    license_key: \"${MAXMIND_LICENSE_KEY}\"/" \
-      /etc/corelight-update/global.yaml
+      /etc/corelight-update/global.yaml > /etc/corelight-update/global.yaml.tmp
+    test -f /etc/corelight-update/global.yaml.tmp && cat /etc/corelight-update/global.yaml.tmp > /etc/corelight-update/global.yaml
   fi
 
   # configure corelight-update global settings from bind mounted file, edit as needed outside of the container
