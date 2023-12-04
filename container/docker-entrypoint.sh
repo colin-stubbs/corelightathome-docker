@@ -22,11 +22,19 @@ if [ ! -f /usr/share/GeoIP/GeoIP.dat ] ; then
   tar -C / -z -x -v -k -f /root/geoip-database-original.tar.gz
 fi
 
-
 # ensure lowercase for simplified boolean type comparison
 CORELIGHT_UPDATE=`echo $CORELIGHT_UPDATE | tr [:upper:] [:lower:]`
 
 if [ "${CORELIGHT_UPDATE}x" == "1x" ] || [ "${CORELIGHT_UPDATE}x" == "truex" ] || [ "${CORELIGHT_UPDATE}x" == "yesx" ] ; then
+  # modify maxmind account # and license key if provided via env variables
+  # NOTE: both must be set.
+  if [ "${MAXMIND_ACCOUNT_ID}x" != "x" ] && [ "${MAXMIND_LICENSE_KEY}x" != "x" ] ; then
+    sed -i.backup -r \
+      -e "s/^    account_id: .*$/    account_id: ${MAXMIND_ACCOUNT_ID}/" \
+      -e "s/^    license_key: .*$/    license_key: \"${MAXMIND_LICENSE_KEY}\"/" \
+      /etc/corelight-update/global.yaml
+  fi
+
   # configure corelight-update global settings from bind mounted file, edit as needed outside of the container
   if [ -f /etc/corelight-update/global.yaml ] ; then
     echo "Updating corelight-update global config based on /etc/corelight-update/global.yaml"
