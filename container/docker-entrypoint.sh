@@ -9,14 +9,14 @@ CORELIGHT_LICENSE="${CORELIGHT_LICENSE:-}"
 # first start with missing file content due to docker volumes?
 if [ ! -f /etc/corelight/EULA ] ; then
   echo "Unpacking original corelight-softsensor config files..."
-  tar -C / -z -x -v -f /root/corelight-softsensor-original.tar.gz
+  tar -C / -z -x -v -k -f /root/corelight-softsensor-original.tar.gz
   # this will cause the container to exit with an error, so it should be restarted automatically...
   exit 1
 fi
 
 if [ ! -f /etc/corelight-update/global/cert.crt ] ; then
   echo "Unpacking original corelight-update config files..."
-  tar -C / -z -x -v -f /root/corelight-update-original.tar.gz
+  tar -C / -z -x -v -k -f /root/corelight-update-original.tar.gz
   # this will cause the container to exit with an error, so it should be restarted automatically...
   exit 1
 fi

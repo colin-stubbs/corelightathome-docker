@@ -2,7 +2,7 @@ FROM debian:bookworm
 
 MAINTAINER Colin Stubbs <cstubbs@gmail.com>
 
-ARG MAXMIND_LICENSE_KEY
+EXPOSE 8443
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 COPY zkg-config.cfg /root/zkg-config.cfg
