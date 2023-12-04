@@ -22,6 +22,7 @@ RUN echo "### Installing required packages" && \
   apt -y install corelight-softsensor corelight-update && \
   tar -v -z -c -f /root/corelight-softsensor-original.tar.gz /etc/corelight && \
   tar -v -z -c -f /root/corelight-update-original.tar.gz /etc/corelight-update /opt/corelight-update /var/corelight-update && \
+  tar -v -z -c -f /root/geoip-database-original.tar.gz /usr/share/GeoIP && \
   cp /etc/corelight-softsensor.conf.example /etc/corelight-softsensor.conf && \
   echo "### Installing zkg" && \
   python3 -m pip install "zkg" && \

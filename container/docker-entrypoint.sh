@@ -10,16 +10,18 @@ CORELIGHT_LICENSE="${CORELIGHT_LICENSE:-}"
 if [ ! -f /etc/corelight/EULA ] ; then
   echo "Unpacking original corelight-softsensor config files..."
   tar -C / -z -x -v -k -f /root/corelight-softsensor-original.tar.gz
-  # this will cause the container to exit with an error, so it should be restarted automatically...
-  exit 1
 fi
 
 if [ ! -f /etc/corelight-update/global/cert.crt ] ; then
   echo "Unpacking original corelight-update config files..."
   tar -C / -z -x -v -k -f /root/corelight-update-original.tar.gz
-  # this will cause the container to exit with an error, so it should be restarted automatically...
-  exit 1
 fi
+
+if [ ! -f /usr/share/GeoIP/GeoIP.dat ] ; then
+  echo "Unpacking original GeoIP data files..."
+  tar -C / -z -x -v -k -f /root/geoip-database-original.tar.gz
+fi
+
 
 # ensure lowercase for simplified boolean type comparison
 CORELIGHT_UPDATE=`echo $CORELIGHT_UPDATE | tr [:upper:] [:lower:]`
