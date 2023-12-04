@@ -21,11 +21,6 @@ if [ ! -f /etc/corelight-update/global/cert.crt ] ; then
   exit 1
 fi
 
-# add license if provided
-if [ "${CORELIGHT_LICENSE}x" != "x" ] ; then
-  echo -n "${CORELIGHT_LICENSE}" > /etc/corelight-license.txt
-fi
-
 # ensure lowercase for simplified boolean type comparison
 CORELIGHT_UPDATE=`echo $CORELIGHT_UPDATE | tr [:upper:] [:lower:]`
 

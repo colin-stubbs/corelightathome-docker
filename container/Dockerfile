@@ -20,7 +20,7 @@ RUN echo "### Installing required packages" && \
   apt -y upgrade &&  \
   echo "### Installing corelight-softsensor and corelight-update" && \
   apt -y install corelight-softsensor corelight-update && \
-  tar -v -z -c -f /root/corelight-softsensor-original.tar.gz /etc/corelight /var/corelight && \
+  tar -v -z -c -f /root/corelight-softsensor-original.tar.gz /etc/corelight && \
   tar -v -z -c -f /root/corelight-update-original.tar.gz /etc/corelight-update /opt/corelight-update /var/corelight-update && \
   cp /etc/corelight-softsensor.conf.example /etc/corelight-softsensor.conf && \
   echo "### Installing zkg" && \
