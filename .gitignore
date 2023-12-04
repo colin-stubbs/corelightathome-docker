@@ -1,2 +1,8 @@
 .DS_Store
 .env
+data/*
+corelight-softsensor/corelight-softsensor.conf
+corelight-softsensor/local.zeek
+corelight-softsensor/zeek-intel.txt
+corelight-update/global.yaml
+corelight-update/db-config.yaml
