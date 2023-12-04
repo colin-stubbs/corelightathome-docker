@@ -24,6 +24,7 @@ services:
       - ./data/var/corelight-update:/var/corelight-update
       - ./data/opt/corelight-update:/opt/corelight-update
       - ./data/geoip:/usr/share/GeoIP
+      - ./data/var/log/corelight-update.log:/var/log/corelight-update.log
       - ./corelight-softsensor/corelight-softsensor.conf:/etc/corelight-softsensor.conf
       - ./corelight-update/global.yaml:/etc/corelight-update/global.yaml
       - ./corelight-update/db-config.yaml:/etc/corelight-update/configs/defaultPolicy/db-config.yaml
