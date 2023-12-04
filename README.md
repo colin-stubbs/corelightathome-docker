@@ -541,9 +541,58 @@ NOTE: You're responsible for scheduling regular `git pull`'s of Zeek-Intelligenc
 
 # Logging
 
+## Local Files
+
+Outside of initial setup and debugging... just... don't. Please.
+
+## Splunk
+
+The corelight-softsensor.conf has an example by default, adjust hec_url and hec_token as appropriate.
+
+```
+# JSON into Splunk's HEC (HTTP Event Collector) API
+Corelight::hec_enable            T
+Corelight::hec_url               https://mysplunk.com:8088/services/collector
+Corelight::hec_token             SECRET_TOKEN_GOES_HERE
+# Transform types can reduce Splunk license usage by moving the full json out of the indexed  
+# data but without behavior degradation. Generally, all queries and dashboards should continue 
+# to work even with transformed data. 
+# If data is being sent to Splunk, the recommended selection is tsv-optimized.
+# Valid options are none, tsv, and tsv-optimized.
+Corelight::hec_transform_type    tsv-optimized
+Corelight::hec_sourcetype_prefix 
+Corelight::hec_verify_cert       T
+```
+
+## CrowdStrike Falcon LogScale
+
+Vendor documentation is available here: https://library.humio.com/integrations/integrations-corelight.html
+
+Adjust hec_url and hec_token as below.
+
+```
+# JSON into CrowdStrike Falcon LogScale
+Corelight::hec_enable            T
+Corelight::hec_url               https://cloud.community.humio.com/api/v1/ingest/hec
+Corelight::hec_token             SECRET_TOKEN_GOES_HERE
+Corelight::hec_transform_type    none
+Corelight::hec_sourcetype_prefix  
+Corelight::hec_verify_cert       T
+```
+
 ## Elastic
 
-TBC
+TL;DR - integration coming soon.
+
+```
+# JSON into Elastic Agent Corelight integration input.
+Corelight::hec_enable            T
+Corelight::hec_url               https://elastic-agent.your-domain.tld:80/corelight
+Corelight::hec_token             SECRET_TOKEN_GOES_HERE
+Corelight::hec_transform_type    none
+Corelight::hec_sourcetype_prefix  
+Corelight::hec_verify_cert       T
+```
 
 # Debugging
 

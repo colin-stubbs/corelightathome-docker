@@ -6,6 +6,21 @@ LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-/opt/corelight/lib}"
 ZEEK_DISABLE_ZEEKYGEN_WARNINGS="${ZEEK_DISABLE_ZEEKYGEN_WARNINGS:-1}"
 CORELIGHT_LICENSE="${CORELIGHT_LICENSE:-}"
 
+# first start with missing file content due to docker volumes?
+if [ ! -f /etc/corelight/EULA ] ; then
+  echo "Unpacking original corelight-softsensor config files..."
+  tar -C / -z -x -v -f /root/corelight-softsensor-original.tar.gz
+  # this will cause the container to exit with an error, so it should be restarted automatically...
+  exit 1
+fi
+
+if [ ! -f /etc/corelight-update/global/cert.crt ] ; then
+  echo "Unpacking original corelight-update config files..."
+  tar -C / -z -x -v -f /root/corelight-update-original.tar.gz
+  # this will cause the container to exit with an error, so it should be restarted automatically...
+  exit 1
+fi
+
 # add license if provided
 if [ "${CORELIGHT_LICENSE}x" != "x" ] ; then
   echo -n "${CORELIGHT_LICENSE}" > /etc/corelight-license.txt
@@ -16,7 +31,10 @@ CORELIGHT_UPDATE=`echo $CORELIGHT_UPDATE | tr [:upper:] [:lower:]`
 
 if [ "${CORELIGHT_UPDATE}x" == "1x" ] || [ "${CORELIGHT_UPDATE}x" == "truex" ] || [ "${CORELIGHT_UPDATE}x" == "yesx" ] ; then
   # configure corelight-update global settings from bind mounted file, edit as needed outside of the container
-  test -f /etc/corelight-update/global.yaml && corelight-update update -global -path /etc/corelight-update/global.yaml
+  if [ -f /etc/corelight-update/global.yaml ] ; then
+    echo "Updating corelight-update global config based on /etc/corelight-update/global.yaml"
+    corelight-update update -global -path /etc/corelight-update/global.yaml
+  fi
 
   # run corelight-update once before starting to ensure all necessary files will exist and content is updated/available
   if [ ! -f /var/corelight-update/files/defaultPolicy/suricata-rulesets/suricata.rules ] ; then

@@ -329,6 +329,22 @@ Corelight::hec_transform_type    none
 Corelight::hec_sourcetype_prefix  
 Corelight::hec_verify_cert       T
 
+# JSON into CrowdStrike Falcon LogScale example,
+#Corelight::hec_enable            T
+#Corelight::hec_url               https://cloud.community.humio.com/api/v1/ingest/hec
+#Corelight::hec_token             SECRET_TOKEN_GOES_HERE
+#Corelight::hec_transform_type    none
+#Corelight::hec_sourcetype_prefix  
+#Corelight::hec_verify_cert       T
+
+# JSON into Elastic Agent Corelight integration input example,
+#Corelight::hec_enable            T
+#Corelight::hec_url               https://elastic-agent.your-domain.tld:80/corelight
+#Corelight::hec_token             SECRET_TOKEN_GOES_HERE
+#Corelight::hec_transform_type    none
+#Corelight::hec_sourcetype_prefix  
+#Corelight::hec_verify_cert       T
+
 # JSON to a Kafka server
 Corelight::kafka_enable          F
 Corelight::kafka_servers         1.2.3.4:9092
@@ -376,7 +392,7 @@ Corelight::batch_log_gzip              F
 # Enable/disable writing logs to the disk file system
 #  T: Write batch logs to the disk file system, with rotation
 #  F: Don't write any logs to the disk file system at all
-Corelight::batch_log_disk_enable           T
+Corelight::batch_log_disk_enable           F
 # If this is a absolute path it will extract there, if relative, it is relative to the base directory
 # defined above with (Corelight::disk_space).
 Corelight::batch_log_disk_path             ./logs

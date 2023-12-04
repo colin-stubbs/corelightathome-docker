@@ -18,23 +18,14 @@ services:
     tty: true
     volumes:
       - ./container/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint
-      - ./corelight-softsensor.conf:/etc/corelight-softsensor.conf
+      - ./data/etc/corelight:/etc/corelight
+      - ./data/etc/corelight-update:/etc/corelight-update
+      - ./data/var/corelight:/var/corelight
+      - ./data/var/corelight-update:/var/corelight-update
+      - ./data/opt/corelight-update:/opt/corelight-update
+      - ./corelight-softsensor/corelight-softsensor.conf:/etc/corelight-softsensor.conf
       - ./corelight-update/global.yaml:/etc/corelight-update/global.yaml
-      - ./corelight-update/configs:/etc/corelight-update/configs
-      - ./corelight-update/working:/var/corelight-update/working
-      - ./corelight-update/files:/var/corelight-update/files
-      - ./corelight-update/packages:/etc/corelight/packages
-      - ./corelight-update/global/global-bundle:/etc/corelight-update/global/global-bundle
-      - ./corelight-update/global/global-input:/etc/corelight-update/global/global-input
-      - ./corelight-update/global/global-intel:/etc/corelight-update/global/global-intel
-      - ./corelight-update/global/global-suricata:/etc/corelight-update/global/global-suricata
-      - ./local.zeek:/etc/corelight/local.zeek
-      - ./zeek-intel:/etc/corelight/intel
-      - ./GeoIP.conf:/etc/corelight-update/global/GeoIP.conf
-      - ./geoip:/usr/share/GeoIP
-      - ./suricata-rules:/etc/corelight/rules
-      - ./input_files:/etc/corelight/input_files
-      - ./data:/var/corelight
+      - ./corelight-update/db-config.yaml:/etc/corelight-update/configs/defaultPolicy/db-config.yaml
     tmpfs:
       - /run/suricata
     environment:
