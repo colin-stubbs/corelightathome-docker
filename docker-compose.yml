@@ -6,6 +6,7 @@ services:
       context: container/
 
     image: corelight:latest
+    restart: always
     network_mode: host
     cap_drop:
       - ALL
