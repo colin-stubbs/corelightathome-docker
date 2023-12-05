@@ -14,7 +14,6 @@ RUN echo "### Installing required packages" && \
   echo "### Setting up corelight apt repository" && \
   curl -fsSL https://packagecloud.io/corelight/stable/gpgkey | gpg --dearmor > /etc/apt/trusted.gpg.d/corelight_stable.gpg && \
   echo "deb [signed-by=/etc/apt/trusted.gpg.d/corelight_stable.gpg] https://packagecloud.io/corelight/stable/debian bookworm main" > /etc/apt/sources.list.d/corelight-softsensor.list && \
-  cat /etc/apt/sources.list.d/corelight-softsensor.list && \
   echo "### Updating / upgrading packages" && \
   apt -y update && \
   apt -y upgrade &&  \
