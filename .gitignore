@@ -6,4 +6,3 @@ corelight-softsensor/local.zeek
 corelight-softsensor/zeek-intel.txt
 corelight-update/global.yaml
 corelight-update/db-config.yaml
-data/var/log/corelight-update.log

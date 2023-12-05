@@ -4,4 +4,6 @@ cp -v -i corelight-softsensor/corelight-softsensor.conf.example corelight-softse
 cp -v -i corelight-update/global.yaml.example corelight-update/global.yaml
 cp -v -i corelight-update/db-config.yaml.example corelight-update/db-config.yaml
 
+touch data/var/log/corelight-update.log
+
 # EOF
